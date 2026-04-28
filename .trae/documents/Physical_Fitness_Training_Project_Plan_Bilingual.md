@@ -1,46 +1,44 @@
-# 项目计划（中文）
+## 1) Goal & Background
+- Build a "Physical Fitness & Training Management System" that supports training plan creation, training records, and progress viewing.
+- Technical constraints: Backend uses Kotlin; database uses H2 (for easy demonstration and development); frontend only initializes React + Vite project (no commitment to full UI implementation).
 
-## 1) 目标与背景
-- 构建一个“体能与训练管理系统”，支持训练计划制定、训练记录、进度查看。
-- 技术约束：后端使用 Kotlin；数据库使用 H2（便于演示与开发）；前端仅初始化 React + Vite 工程（不承诺完整 UI 实现）。
+## 2) Scope Definition (Basic vs Advanced)
 
-## 2) 范围定义（基础版 vs 进阶版）
+### Basic Version (MVP)
+- Account and Identity: Register/Login, Logout, Basic Profile.
+- Training Content: Exercise Library (View/Search), Exercise Details.
+- Plans: Create training plans, plans contain exercises and set/rep targets.
+- Records: Start a training session, log sets/reps/weight/duration per exercise.
+- Progress: View training history over time and simple statistics (counts, total training volume).
 
-### 基础版（MVP）
-- 账户与身份：注册/登录、退出、基础资料。
-- 训练内容：动作库（查看/搜索）、动作详情。
-- 计划：创建训练计划、计划包含动作与组次目标。
-- 记录：开始一次训练、按动作记录组数/次数/重量/时长。
-- 进度：按时间查看训练历史与简单统计（次数、总训练量）。
+### Advanced Version (Optional, not included in this delivery)
+- Smart Recommendations: Automatically adjust training volume and plans based on history.
+- Device Integration: Import from wearables/heart rate/steps.
+- Coach Collaboration: Coaches create/assign plans, student feedback.
+- Training Groups: Admin-only creation; users join/leave groups, text discussion within groups (minimal version).
+- Deeper Analytics: PR curves, fatigue management, periodization reports.
 
-### 进阶版（可选，不纳入本期交付）
-- 智能推荐：基于历史自动调整训练量与计划。
-- 设备集成：穿戴设备/心率/步数导入。
-- 教练协作：教练创建/下发计划、学员反馈。
-- 训练群组：仅管理者创建；用户加入/退出群组，群内文字讨论（最简版）。
-- 更深度分析：PR 曲线、疲劳管理、周期化报表。
+## 3) Key Entities & Feature Mapping
+- User: Registration info, height/weight (optional), preferences.
+- Exercise: Name, muscle group, equipment, instructions.
+- Training Plan: Name, goal, plan items.
+- Plan Item: Exercise, target sets/reps/weight/time.
+- Training: Date, associated plan (optional), notes.
+- Training Set: Reps, weight, duration, RPE (optional).
 
-## 3) 关键实体与功能映射
-- 用户：注册信息、身高体重（可选）、偏好。
-- 动作：名称、肌群、器械、说明。
-- 训练计划：名称、目标、计划条目。
-- 计划条目：动作、目标组数/次数/重量/时间。
-- 训练：日期、关联计划（可选）、备注。
-- 训练组：次数、重量、用时、RPE（可选）。
-
-## 4) 里程碑
-| 阶段 | 时间 | 交付物 |
+## 4) Milestones
+| Phase | Time | Deliverables |
 |---|---|---|
-| M0 定义 | 0.5 周 | 需求确认、数据模型草案、API 清单 |
-| M1 前端初始化 | 0.5 周 | React+Vite 初始化、路由骨架、接口调用封装（可空实现） |
-| M2 后端基础 | 1 周 | Kotlin 服务骨架、H2 表结构、核心 CRUD（动作/计划） |
-| M3 MVP 闭环 | 1 周 | 登录→查看动作→建计划→记录训练→查看历史（最小 UI 或 API 验证） |
-| M4 稳定化 | 0.5 周 | 校验、错误处理、最小测试、文档更新 |
+| M0 Definition | 0.5 week | Requirements confirmation, draft data model, API list |
+| M1 Frontend Init | 0.5 week | React+Vite initialization, route skeleton, API wrapper stubs (can be empty implementations) |
+| M2 Backend Core | 1 week | Kotlin service skeleton, H2 schema, core CRUD (exercises/plans) |
+| M3 MVP Closed Loop | 1 week | Login → view exercises → create plan → log training → view history (minimal UI or API verification) |
+| M4 Stabilization | 0.5 week | Validation, error handling, minimal testing, document updates |
 
-## 5) 假设与风险
-- H2 适合开发/演示；若要生产可迁移至 Postgres。
-- “前端仅初始化”意味着交付重点在 API 与数据正确性。
-- 数据一致性：尽量用应用层逻辑约束而非强外键。
+## 5) Assumptions & Risks
+- H2 is suitable for development/demo; can migrate to Postgres for production.
+- "Frontend init only" means delivery focuses on API and data correctness.
+- Data consistency: Try to use application layer logic constraints instead of strong foreign keys.
 
 # Project Plan (English)
 

@@ -1,17 +1,12 @@
-/*
- * 这个文件做什么：前端路由入口，定义页面路径与布局。
- * What this file is for: frontend routing entry, defines routes and layout.
- */
-
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import AppShell from "@/components/AppShell";
 import Dashboard from "@/pages/Dashboard";
-import Exercises from "@/pages/Exercises";
+import Exercises from "@/pages/Excercises";
 import Groups from "@/pages/Groups";
 import Login from "@/pages/auth/Login";
 import Plans from "@/pages/Plans";
 import Register from "@/pages/auth/Register";
-import Workouts from "@/pages/Workouts";
+import Settings from "@/pages/Settings";
 
 export default function App() {
   return (
@@ -24,11 +19,10 @@ export default function App() {
 
         <Route element={<AppShell />}>
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/exercises" element={<Exercises />} />
           <Route path="/plans" element={<Plans />} />
-          <Route path="/workouts" element={<Workouts />} />
           <Route path="/groups" element={<Groups />} />
-        </Route>
+          <Route path="/excersises" element={<Exercises />} />
+          <Route path="/settings" element={<Settings />} />        </Route>
 
         <Route path="*" element={<div className="p-6 text-sm text-zinc-600">404 Not Found</div>} />
       </Routes>
