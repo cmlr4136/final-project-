@@ -1,6 +1,9 @@
 /*
  * 这个文件做什么：从 Authorization: Bearer <token> 解析登录用户，并提供 requireUser 辅助方法。
  * What this file is for: resolve the logged-in user from Authorization: Bearer <token> and provide requireUser helpers.
+ * AuthPlugin 先把 token 解析成当前用户。
+ * 当前用户会被临时存到这次请求里。
+ * 业务接口再用 requireUser() 或 requireAdmin() 做权限判断
  */
 
 package com.example.auth

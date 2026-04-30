@@ -1,6 +1,7 @@
 /*
  * 这个文件做什么：注册/登录/退出（最简认证）。
  * What this file is for: register/login/logout (minimal auth).
+ * 这是登录注册的接口
  */
 
 package com.example.routes
@@ -16,7 +17,7 @@ import com.example.db.tables.Users
 import com.example.http.errors.ApiError
 import com.example.security.PasswordHasher
 import com.example.util.UtcClock
-import io.ktor.http.*
+import io.ktor.http.*     
 import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.server.request.*
