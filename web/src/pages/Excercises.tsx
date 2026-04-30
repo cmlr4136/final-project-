@@ -1,7 +1,4 @@
-/*
- * 这个文件做什么：动作库页面占位。
- * What this file is for: exercises page placeholder.
- */
+//Page that displays list of excersizes
 
 export default function Exercises() {
   return (

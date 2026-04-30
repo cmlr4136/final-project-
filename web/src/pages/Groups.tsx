@@ -1,7 +1,5 @@
-/*
- * 这个文件做什么：训练群组页面占位。
- * What this file is for: groups page placeholder.
- */
+//Used for groupchats page
+
 
 export default function Groups() {
   return (

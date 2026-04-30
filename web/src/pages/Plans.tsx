@@ -1,7 +1,4 @@
-/*
- * 这个文件做什么：训练计划页面占位。
- * What this file is for: plans page placeholder.
- */
+//Used for page with workouts created from Start Plan
 
 export default function Plans() {
   return (
