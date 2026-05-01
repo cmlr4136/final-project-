@@ -19,7 +19,7 @@ export const fitnessApi = {
   login: (req: LoginRequest) => apiClient.post<AuthResponse>("/api/auth/login", req),
   logout: () => apiClient.post<void>("/api/auth/logout"),
 
-  listExercises: () => apiClient.get<ExerciseDto[]>("/api/exercises"),
+  listExercises: () => apiClient.get<ExerciseDto[]>("/exercises"),
   listPlans: () => apiClient.get<TrainingPlanDto[]>("/api/plans"),
   listWorkouts: () => apiClient.get<WorkoutSessionDto[]>("/api/workout-sessions"),
   listGroups: () => apiClient.get<TrainingGroupDto[]>("/api/groups"),

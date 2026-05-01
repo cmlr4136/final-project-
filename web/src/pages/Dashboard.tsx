@@ -2,11 +2,18 @@
 
 import { useAuthStore } from "@/stores/authStore";
 import { useNavigate } from "react-router-dom";
+import { useSettingsStore } from "@/stores/settingsStore";
+
 
 
 export default function Dashboard() {
   const user = useAuthStore((s) => s.user);
   const navigate = useNavigate();
+  const unit = useSettingsStore((s) => s.unit);
+
+function displayWeight(kg: number): string {
+    return unit === "lbs" ? `${(kg * 2.20462).toFixed(1)} lbs` : `${kg} kg`;
+  }
 
   return (
     <section className="space-y-6">
@@ -35,7 +42,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-3 gap-4">
           <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm space-y-1">
             <p className="text-sm text-zinc-500">Total Weight Moved</p>
-            <p className="text-2xl font-bold text-zinc-900">0 kg</p>
+            <p className="text-2xl font-bold text-zinc-900">{displayWeight(1)}</p>
           </div>
           <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm space-y-1">
             <p className="text-sm text-zinc-500">Time Elapsed</p>
