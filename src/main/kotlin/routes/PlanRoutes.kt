@@ -1,6 +1,16 @@
 /*
  * 这个文件做什么：训练计划 API（计划 CRUD + 条目管理）。
  * What this file is for: training plan API (CRUD + items).
+ * 服务器内部顺序是：
+请求进来
+AuthPlugin 取出 token
+查数据库，知道这个 token 属于用户 A
+把用户 A 的信息临时挂到这次请求上
+路由匹配到 /api/plans
+这个接口里调用 call.requireUser()
+成功拿到“用户 A”
+用 user.id 去数据库查 TrainingPlans.userId = 用户A
+把用户 A 自己的计划返回
  */
 
 package com.example.routes

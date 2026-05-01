@@ -1,6 +1,7 @@
 /*
  * 这个文件做什么：初始化数据库连接与建表（H2 + Exposed）。
  * What this file is for: initialize DB connection and create tables (H2 + Exposed).
+ * 在后端启动时连接数据库、自动建表，并补齐系统运行所需的初始数据
  */
 
 package com.example.db
@@ -41,7 +42,7 @@ object DatabaseFactory {
         database = Database.connect(url = url, driver = driver, user = user, password = password)
 
         transaction(database) {
-            SchemaUtils.createMissingTablesAndColumns(
+            SchemaUtils.createMissingTablesAndColumns (
                 Users,
                 Exercises,
                 TrainingPlans,
