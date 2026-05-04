@@ -4,16 +4,19 @@ import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Send, MoreVertical } from 'lucide-react';
 import { fitnessApi } from '@/api/fitnessApi'; 
 import { useAuthStore } from '@/stores/authStore';
+import type { GroupMessageDto, TrainingGroupDto } from '@/api/types';
 
 export default function GroupChat() {
   // Extract the groupId from the URL (e.g., /groups/5 -> groupId = '5')
   const { groupId } = useParams<{ groupId: string }>(); 
   const currentUser = useAuthStore((state) => state.user);
 
-  const [groupInfo, setGroupInfo] = useState<any>(null);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [groupInfo, setGroupInfo] = useState<TrainingGroupDto | null>(null);
+  const [messages, setMessages] = useState<GroupMessageDto[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const lastCreatedAtRef = useRef<string | null>(null);
   
   // Auto-scroll to bottom ref
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -28,7 +31,7 @@ export default function GroupChat() {
         const history = await fitnessApi.getGroupMessages(groupId);
         
         setGroupInfo(info);
-        setMessages(history);
+        setMessages([...history].reverse());
       } catch (error) {
         console.error("Failed to load chat", error);
       } finally {
@@ -38,9 +41,39 @@ export default function GroupChat() {
     fetchChatData();
   }, [groupId]);
 
+  useEffect(() => {
+    if (!groupId) return;
+
+    const poll = async () => {
+      const lastCreatedAt = lastCreatedAtRef.current;
+      if (!lastCreatedAt) return;
+
+      setIsSyncing(true);
+      try {
+        const incoming = await fitnessApi.getGroupMessages(groupId, { after: lastCreatedAt });
+        if (incoming.length === 0) return;
+
+        const normalized = [...incoming].reverse();
+        setMessages((prev) => {
+          const existingIds = new Set(prev.map((m) => m.id));
+          const appended = normalized.filter((m) => !existingIds.has(m.id));
+          return appended.length === 0 ? prev : [...prev, ...appended];
+        });
+      } catch (error) {
+        console.error("Failed to sync messages", error);
+      } finally {
+        setIsSyncing(false);
+      }
+    };
+
+    const id = window.setInterval(poll, 3000);
+    return () => window.clearInterval(id);
+  }, [groupId]);
+
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    lastCreatedAtRef.current = messages[messages.length - 1]?.createdAt ?? null;
   }, [messages]);
 
   // 3. Save new messages to the backend
@@ -77,10 +110,10 @@ export default function GroupChat() {
           </Link>
           <div>
             <h1 className="text-lg font-semibold text-gray-900 leading-tight">{groupInfo.name}</h1>
-            <p className="text-sm text-gray-500 leading-tight">{groupInfo.memberCount} members</p>
+            <p className="text-sm text-gray-500 leading-tight">{groupInfo.isPublic ? 'Public group' : 'Private group'}</p>
           </div>
         </div>
-        <button className="text-gray-500 hover:text-gray-900 transition-colors p-1">
+        <button className="text-gray-500 hover:text-gray-900 transition-colors p-1" aria-label={isSyncing ? 'Syncing' : 'Menu'}>
           <MoreVertical className="w-5 h-5" />
         </button>
       </header>
@@ -88,12 +121,12 @@ export default function GroupChat() {
       <main className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((msg) => {
           // Check if this message belongs to the current user
-          const isMine = msg.senderId === currentUser?.id; 
+          const isMine = msg.userId === currentUser?.id; 
 
           return (
             <div key={msg.id} className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
               {!isMine && (
-                <span className="text-xs text-gray-500 mb-1 ml-1">{msg.senderName}</span>
+                <span className="text-xs text-gray-500 mb-1 ml-1">{msg.userId}</span>
               )}
               
               <div className={`px-4 py-2.5 max-w-[80%] rounded-2xl ${
@@ -107,7 +140,7 @@ export default function GroupChat() {
               
               <span className={`text-[11px] text-gray-400 mt-1 ${isMine ? 'mr-1' : 'ml-1'}`}>
                 {/* Format the backend timestamp into a readable time */}
-                {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
           );
