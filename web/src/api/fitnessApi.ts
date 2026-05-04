@@ -23,5 +23,6 @@ export const fitnessApi = {
   listPlans: () => apiClient.get<TrainingPlanDto[]>("/api/plans"),
   listWorkouts: () => apiClient.get<WorkoutSessionDto[]>("/api/workout-sessions"),
   listGroups: () => apiClient.get<TrainingGroupDto[]>("/api/groups"),
+  getMyGroups: () => apiClient.get<TrainingGroupDto[]>("/api/groups/my")
 };
 
