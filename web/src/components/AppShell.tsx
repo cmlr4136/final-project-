@@ -10,7 +10,7 @@ const navItems = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/plans", label: "Plans" },
   { to: "/groups", label: "Group Chats" },
-  { to: "/excersises", label: "Exercises" },
+  { to: "/exercises", label: "Exercises" },
   { to: "/settings", label: "Settings" },
 ];
 

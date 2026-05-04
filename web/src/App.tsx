@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import AppShell from "@/components/AppShell";
 import Dashboard from "@/pages/Dashboard";
-import Exercises from "@/pages/Excercises";
+import Exercises from "@/pages/Exercises";
 import GroupChat from "@/pages/GroupChat";
 import Groups from "@/pages/Groups";
 import Login from "@/pages/auth/Login";
@@ -22,7 +22,7 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/plans" element={<Plans />} />
           <Route path="/groups" element={<Groups />} />
-          <Route path="/excersises" element={<Exercises />} />
+          <Route path="/exercises" element={<Exercises />} />
           <Route path="/settings" element={<Settings />} />        
         </Route>
 
