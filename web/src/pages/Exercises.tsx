@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { fitnessApi } from "@/api/fitnessApi";
 import type { ExerciseDto } from "@/api/types";
 
-const FILTERS = ["All", "Arms & Shoulders", "Chest", "Back", "Legs", "Abs"];
+const FILTERS = ["All", "Arms & Shoulders", "Chest", "Back", "Legs", "Abs", "Cardio"];
 
 const MUSCLE_MAP: Record<string, string> = {
   "Arms & Shoulders": "arms",
@@ -12,6 +12,7 @@ const MUSCLE_MAP: Record<string, string> = {
   "Back": "back",
   "Legs": "legs",
   "Abs": "abs",
+  "Cardio": "cardio",
 };
 
 export default function Exercises() {
@@ -22,11 +23,11 @@ export default function Exercises() {
   const [activeFilter, setActiveFilter] = useState("All");
 
   useEffect(() => {
-    fitnessApi.listExercises()
-      .then(setExercises)
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, []);
+  fitnessApi.listExercises()
+    .then(setExercises)
+    .catch((err) => setError(err.message))
+    .finally(() => setLoading(false));
+}, []);
 
   const filtered = exercises.filter((ex) => {
     const matchesSearch = ex.name.toLowerCase().includes(search.toLowerCase());
