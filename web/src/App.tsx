@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import AppShell from "@/components/AppShell";
 import Dashboard from "@/pages/Dashboard";
 import Exercises from "@/pages/Excercises";
+import GroupChat from "@/pages/GroupChat";
 import Groups from "@/pages/Groups";
 import Login from "@/pages/auth/Login";
 import Plans from "@/pages/Plans";
@@ -22,7 +23,10 @@ export default function App() {
           <Route path="/plans" element={<Plans />} />
           <Route path="/groups" element={<Groups />} />
           <Route path="/excersises" element={<Exercises />} />
-          <Route path="/settings" element={<Settings />} />        </Route>
+          <Route path="/settings" element={<Settings />} />        
+        </Route>
+
+        <Route path="/groups/:groupId" element={<GroupChat />} />
 
         <Route path="*" element={<div className="p-6 text-sm text-zinc-600">404 Not Found</div>} />
       </Routes>
