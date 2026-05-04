@@ -29,8 +29,10 @@ export const fitnessApi = {
   getGroupDetails: (groupId: string | number) => apiClient.get<TrainingGroupDto>(`/api/groups/${groupId}`), // get details of a specific group
   joinGroup: (groupId: string | number) => apiClient.post<void>(`/api/groups/${groupId}/join`), // join a group
   leaveGroup: (groupId: string | number) => apiClient.post<void>(`/api/groups/${groupId}/leave`), // leave a group
-  getGroupMessages: (groupId: string | number) => apiClient.get<GroupMessageDto[]>(`/api/groups/${groupId}/messages`),
+  getGroupMessages: (groupId: string | number, params?: { after?: string }) => {
+    const qs = params?.after ? `?after=${encodeURIComponent(params.after)}` : "";
+    return apiClient.get<GroupMessageDto[]>(`/api/groups/${groupId}/messages${qs}`);
+  },
   sendMessage: (groupId: string | number, content: string) => apiClient.post<GroupMessageDto>(`/api/groups/${groupId}/messages`, { content }), // send a message to a group
   createGroup: (data: { name: string; description: string }) => apiClient.post<TrainingGroupDto>("/api/groups", data),
 };
-

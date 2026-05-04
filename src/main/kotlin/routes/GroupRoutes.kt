@@ -22,12 +22,17 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.notInList
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.greaterEq
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.andWhere
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.insertIgnore
 import org.jetbrains.exposed.sql.selectAll
+import java.time.Instant
 import java.util.UUID
 
 fun Route.groupRoutes() {
@@ -50,6 +55,95 @@ fun Route.groupRoutes() {
                     }
             }
             call.respond(groups)
+        }
+
+        get("/my") {
+            val user = call.requireUser()
+            val groups = dbQuery {
+                val myGroupIds = GroupMemberships.selectAll()
+                    .where { GroupMemberships.userId eq user.id }
+                    .limit(500)
+                    .map { it[GroupMemberships.groupId] }
+
+                if (myGroupIds.isEmpty()) {
+                    emptyList()
+                } else {
+                    TrainingGroups.selectAll()
+                        .where { TrainingGroups.id inList myGroupIds }
+                        .orderBy(TrainingGroups.createdAt, SortOrder.DESC)
+                        .limit(200)
+                        .map {
+                            TrainingGroupDto(
+                                id = it[TrainingGroups.id].toString(),
+                                name = it[TrainingGroups.name],
+                                description = it[TrainingGroups.description],
+                                isPublic = it[TrainingGroups.isPublic],
+                                createdAt = it[TrainingGroups.createdAt].toString(),
+                            )
+                        }
+                }
+            }
+            call.respond(groups)
+        }
+
+        get("/discover") {
+            val user = call.requireUser()
+            val groups = dbQuery {
+                val myGroupIds = GroupMemberships.selectAll()
+                    .where { GroupMemberships.userId eq user.id }
+                    .limit(500)
+                    .map { it[GroupMemberships.groupId] }
+
+                val baseQuery = TrainingGroups.selectAll().where { TrainingGroups.isPublic eq true }
+                val filteredQuery = if (myGroupIds.isEmpty()) baseQuery else baseQuery.andWhere { TrainingGroups.id notInList myGroupIds }
+
+                filteredQuery
+                    .orderBy(TrainingGroups.createdAt, SortOrder.DESC)
+                    .limit(200)
+                    .map {
+                        TrainingGroupDto(
+                            id = it[TrainingGroups.id].toString(),
+                            name = it[TrainingGroups.name],
+                            description = it[TrainingGroups.description],
+                            isPublic = it[TrainingGroups.isPublic],
+                            createdAt = it[TrainingGroups.createdAt].toString(),
+                        )
+                    }
+            }
+            call.respond(groups)
+        }
+
+        get("/{id}") {
+            val user = call.requireUser()
+            val groupId = call.parameters["id"]?.toUuidOrThrow("groupId") ?: throw IllegalArgumentException("Missing id")
+
+            val group = dbQuery {
+                val row = TrainingGroups.selectAll().where { TrainingGroups.id eq groupId }.singleOrNull() ?: return@dbQuery null
+                val isMember = GroupMemberships.selectAll()
+                    .where { (GroupMemberships.groupId eq groupId) and (GroupMemberships.userId eq user.id) }
+                    .limit(1)
+                    .any()
+
+                if (!row[TrainingGroups.isPublic] && !isMember) {
+                    return@dbQuery TrainingGroupAccess.Denied
+                }
+
+                TrainingGroupAccess.Allowed(
+                    TrainingGroupDto(
+                        id = row[TrainingGroups.id].toString(),
+                        name = row[TrainingGroups.name],
+                        description = row[TrainingGroups.description],
+                        isPublic = row[TrainingGroups.isPublic],
+                        createdAt = row[TrainingGroups.createdAt].toString(),
+                    ),
+                )
+            }
+
+            when (group) {
+                null -> call.respond(HttpStatusCode.NotFound)
+                TrainingGroupAccess.Denied -> call.respond(HttpStatusCode.Forbidden)
+                is TrainingGroupAccess.Allowed -> call.respond(group.dto)
+            }
         }
 
         post {
@@ -117,6 +211,9 @@ fun Route.groupRoutes() {
         get("/{id}/messages") {
             val user = call.requireUser()
             val groupId = call.parameters["id"]?.toUuidOrThrow("groupId") ?: throw IllegalArgumentException("Missing id")
+            val after = call.request.queryParameters["after"]?.let {
+                runCatching { Instant.parse(it) }.getOrElse { throw IllegalArgumentException("Invalid 'after' timestamp") }
+            }
 
             val isMember = dbQuery {
                 GroupMemberships.selectAll()
@@ -132,6 +229,9 @@ fun Route.groupRoutes() {
             val messages = dbQuery {
                 GroupMessages.selectAll()
                     .where { GroupMessages.groupId eq groupId }
+                    .let { query ->
+                        if (after == null) query else query.andWhere { GroupMessages.createdAt greaterEq after }
+                    }
                     .orderBy(GroupMessages.createdAt, SortOrder.DESC)
                     .limit(100)
                     .map {
@@ -186,4 +286,9 @@ fun Route.groupRoutes() {
             call.respond(HttpStatusCode.Created, created)
         }
     }
+}
+
+private sealed interface TrainingGroupAccess {
+    data object Denied : TrainingGroupAccess
+    data class Allowed(val dto: TrainingGroupDto) : TrainingGroupAccess
 }

@@ -4,6 +4,7 @@ import { ChevronRight, MessageCircle, Users, Plus, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore'; 
 import { fitnessApi } from '@/api/fitnessApi'; 
+import type { TrainingGroupDto } from '@/api/types';
 
 export default function Groups() {
   const navigate = useNavigate();
@@ -11,8 +12,8 @@ export default function Groups() {
   const isAdmin = user?.isAdmin === true; 
 
   // -- Data States --
-  const [myGroups, setMyGroups] = useState<any[]>([]);
-  const [discoverGroups, setDiscoverGroups] = useState<any[]>([]);
+  const [myGroups, setMyGroups] = useState<TrainingGroupDto[]>([]);
+  const [discoverGroups, setDiscoverGroups] = useState<TrainingGroupDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // -- NEW: Modal States --
@@ -39,7 +40,7 @@ export default function Groups() {
     }
   };
 
-  const handleJoinGroup = async (groupId: number) => {
+  const handleJoinGroup = async (groupId: string) => {
     try {
       await fitnessApi.joinGroup(groupId); 
       navigate(`/groups/${groupId}`); 
@@ -119,7 +120,7 @@ export default function Groups() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium text-gray-900 truncate">{group.name}</h3>
-                    <p className="text-sm text-gray-500 truncate">{group.lastMessage || 'No messages yet.'}</p>
+                    <p className="text-sm text-gray-500 truncate">{group.description || 'No description yet.'}</p>
                   </div>
                   <ChevronRight className="w-5 h-5 text-gray-400 ml-2 flex-shrink-0" />
                 </Link>
@@ -136,7 +137,7 @@ export default function Groups() {
                 <h3 className="text-lg font-medium text-gray-900 mb-1">{group.name}</h3>
                 <div className="flex items-center text-sm text-gray-500 mb-3">
                   <Users className="w-4 h-4 mr-1.5" />
-                  <span>{group.memberCount || 0} members</span>
+                  <span>{group.isPublic ? 'Public' : 'Private'}</span>
                 </div>
                 <p className="text-gray-600 text-sm mb-5 leading-relaxed">{group.description}</p>
                 <button 
