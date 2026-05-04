@@ -31,6 +31,6 @@ export const fitnessApi = {
   leaveGroup: (groupId: string | number) => apiClient.post<void>(`/api/groups/${groupId}/leave`), // leave a group
   getGroupMessages: (groupId: string | number) => apiClient.get<GroupMessageDto[]>(`/api/groups/${groupId}/messages`),
   sendMessage: (groupId: string | number, content: string) => apiClient.post<GroupMessageDto>(`/api/groups/${groupId}/messages`, { content }), // send a message to a group
-
+  createGroup: (data: { name: string; description: string }) => apiClient.post<TrainingGroupDto>("/api/groups", data),
 };
 
