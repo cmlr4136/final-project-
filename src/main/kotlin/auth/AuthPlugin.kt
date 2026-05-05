@@ -11,11 +11,9 @@ package com.example.auth
 import com.example.db.dbQuery
 import com.example.db.tables.AuthTokens
 import com.example.db.tables.Users
-import com.example.http.errors.ApiError
 import com.example.util.UtcClock
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.response.*
 import io.ktor.util.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
@@ -29,6 +27,10 @@ data class AuthUser(
     val displayName: String,
     val isAdmin: Boolean,
 )
+
+class UnauthorizedException : RuntimeException("Unauthorized")
+
+class ForbiddenException(message: String = "Forbidden") : RuntimeException(message)
 
 private val AuthUserKey = AttributeKey<AuthUser>("auth-user")
 
@@ -68,17 +70,13 @@ val AuthPlugin = createApplicationPlugin(name = "AuthPlugin") {
 
 suspend fun ApplicationCall.requireUser(): AuthUser {
     return attributes.getOrNull(AuthUserKey)
-        ?: run {
-            respond(HttpStatusCode.Unauthorized, ApiError("Unauthorized"))
-            throw IllegalStateException("Unauthorized")
-        }
+        ?: throw UnauthorizedException()
 }
 
 suspend fun ApplicationCall.requireAdmin(): AuthUser {
     val user = requireUser()
     if (!user.isAdmin) {
-        respond(HttpStatusCode.Forbidden, ApiError("Admin only"))
-        throw IllegalStateException("Forbidden")
+        throw ForbiddenException("Admin only")
     }
     return user
 }

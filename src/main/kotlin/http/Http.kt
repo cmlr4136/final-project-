@@ -4,6 +4,8 @@
 
 package com.example.http
 
+import com.example.auth.ForbiddenException
+import com.example.auth.UnauthorizedException
 import com.example.http.errors.ApiError
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
@@ -42,6 +44,12 @@ fun Application.configureHttp() {
 //后端不会因为 extra 多出来就炸掉
 //下面是错误处理
     install(StatusPages) {
+        exception<UnauthorizedException> { call, _ ->
+            call.respond(HttpStatusCode.Unauthorized, ApiError(message = "Unauthorized"))
+        }
+        exception<ForbiddenException> { call, cause ->
+            call.respond(HttpStatusCode.Forbidden, ApiError(message = cause.message ?: "Forbidden"))
+        }
         exception<IllegalArgumentException> { call, cause ->
             call.respond(HttpStatusCode.BadRequest, ApiError(message = cause.message ?: "Bad request"))
         }//第一种错误，请求体格式错误，也就是前端发送的 JSON 格式有误

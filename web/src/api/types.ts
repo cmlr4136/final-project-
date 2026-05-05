@@ -57,6 +57,7 @@ export type TrainingGroupDto = {
   description?: string | null;
   isPublic: boolean;
   createdAt: string;
+  memberCount?: number;
 };
 
 export type GroupMessageDto = {
