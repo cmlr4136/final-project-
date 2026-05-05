@@ -5,6 +5,7 @@
 
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
+import FitTrackBadge from './FitTrackBadge';
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard" },
@@ -39,7 +40,12 @@ export default function AppShell() {
     <div className="min-h-dvh bg-white">
       <header className="border-b border-zinc-200">
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3">
-          <div className="text-xl font-bold text-zinc-900">FitTrack</div>
+          <div className="flex items-center gap-2 mr-4">
+            <FitTrackBadge className="w-8 h-8" />
+            <span className="text-xl font-black text-zinc-900 tracking-tight leading-none">
+              FitTrack
+            </span>
+          </div>
           <nav className="flex flex-wrap gap-1">
             {navItems.map((it) => (
               <NavItem key={it.to} to={it.to} label={it.label} />
