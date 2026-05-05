@@ -4,6 +4,10 @@
  */
 
 import { apiClient } from "@/api/client";
+import axios from "axios";
+
+
+
 import type {
   AuthResponse,
   ExerciseDto,
@@ -30,6 +34,10 @@ export const fitnessApi = {
   leaveGroup: (groupId: string | number) => apiClient.post<void>(`/api/groups/${groupId}/leave`), // leave a group
   getGroupMessages: (groupId: string | number) => apiClient.get<GroupMessageDto[]>(`/api/groups/${groupId}/messages`),
   sendMessage: (groupId: string | number, content: string) => apiClient.post<GroupMessageDto>(`/api/groups/${groupId}/messages`, { content }), // send a message to a group
-
+  createPlan: (req: { name: string; goal: string | null }) =>
+    apiClient.post<TrainingPlanDto>("/api/plans", req),
+  getPlan: (id: string) => apiClient.get<TrainingPlanDto>(`/api/plans/${id}`),
+  deletePlan: (id: string) =>
+    apiClient.delete(`/api/plans/${id}`),
 };
 
