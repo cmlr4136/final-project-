@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 // 1. Import useParams to read the URL
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, MoreVertical } from 'lucide-react';
 import { fitnessApi } from '@/api/fitnessApi'; 
 import { useAuthStore } from '@/stores/authStore';
@@ -10,6 +10,29 @@ export default function GroupChat() {
   // Extract the groupId from the URL (e.g., /groups/5 -> groupId = '5')
   const { groupId } = useParams<{ groupId: string }>(); 
   const currentUser = useAuthStore((state) => state.user);
+  const navigate = useNavigate();
+  const isAdmin = currentUser?.isAdmin === true;
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const handleLeaveGroup = async () => {
+    if (!window.confirm("Are you sure you want to leave this group?")) return;
+    try {
+      await fitnessApi.leaveGroup(groupId!); 
+      navigate('/groups'); 
+    } catch (error) {
+      alert("Failed to leave group.");
+    }
+  };
+
+  const handleDeleteGroup = async () => {
+    if (!window.confirm("WARNING: Are you sure you want to completely DELETE this group?")) return;
+    try {
+      await fitnessApi.deleteGroup(groupId!);
+      navigate('/groups');
+    } catch (error) {
+      alert("Failed to delete group.");
+    }
+  };
 
   const [groupInfo, setGroupInfo] = useState<TrainingGroupDto | null>(null);
   const [messages, setMessages] = useState<GroupMessageDto[]>([]);
@@ -113,9 +136,35 @@ export default function GroupChat() {
             <p className="text-sm text-gray-500 leading-tight">{groupInfo.isPublic ? 'Public group' : 'Private group'}</p>
           </div>
         </div>
-        <button className="text-gray-500 hover:text-gray-900 transition-colors p-1" aria-label={isSyncing ? 'Syncing' : 'Menu'}>
-          <MoreVertical className="w-5 h-5" />
-        </button>
+        <div className="relative">
+          <button 
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="text-gray-500 hover:text-gray-900 transition-colors p-1 rounded-full" 
+            aria-label="Menu"
+          >
+            <MoreVertical className="w-5 h-5" />
+          </button>
+
+          {isMenuOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 z-50 overflow-hidden">
+              <button 
+                onClick={handleLeaveGroup}
+                className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Leave Group
+              </button>
+
+              {isAdmin && (
+                <button 
+                  onClick={handleDeleteGroup}
+                  className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 border-t border-gray-100 transition-colors font-medium"
+                >
+                  Delete Group
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </header>
 
       <main className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -126,7 +175,7 @@ export default function GroupChat() {
           return (
             <div key={msg.id} className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
               {!isMine && (
-                <span className="text-xs text-gray-500 mb-1 ml-1">{msg.userId}</span>
+                <span className="text-xs text-gray-500 mb-1 ml-1">{msg.senderName || 'Unknown User'}</span>
               )}
               
               <div className={`px-4 py-2.5 max-w-[80%] rounded-2xl ${

@@ -82,7 +82,7 @@ export default function Groups() {
   if (isLoading) return <div className="p-8 text-center text-gray-500">Loading groups...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 pb-24 relative">
+    <div className="min-h-screen bg-white text-gray-900 pb-24 relative">
       <header className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm px-4 py-5 flex items-center justify-between border-b border-gray-200 shadow-sm">
         <h1 className="text-2xl font-semibold">Training Groups</h1>
         <div className="flex gap-4 text-gray-900">
