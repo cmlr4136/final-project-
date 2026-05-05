@@ -133,7 +133,7 @@ export default function GroupChat() {
           </Link>
           <div>
             <h1 className="text-lg font-semibold text-gray-900 leading-tight">{groupInfo.name}</h1>
-            <p className="text-sm text-gray-500 leading-tight">{groupInfo.isPublic ? 'Public group' : 'Private group'}</p>
+            <p className="text-sm text-gray-500 leading-tight">{(groupInfo.memberCount ?? 0)} members · {groupInfo.isPublic ? 'Public group' : 'Private group'}</p>
           </div>
         </div>
         <div className="relative">
@@ -147,17 +147,19 @@ export default function GroupChat() {
 
           {isMenuOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 z-50 overflow-hidden">
-              <button 
-                onClick={handleLeaveGroup}
-                className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                Leave Group
-              </button>
+              {!isAdmin && (
+                <button
+                  onClick={handleLeaveGroup}
+                  className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Leave Group
+                </button>
+              )}
 
               {isAdmin && (
-                <button 
+                <button
                   onClick={handleDeleteGroup}
-                  className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 border-t border-gray-100 transition-colors font-medium"
+                  className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors font-medium"
                 >
                   Delete Group
                 </button>

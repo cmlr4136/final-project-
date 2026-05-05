@@ -15,6 +15,7 @@ import com.example.db.dbQuery
 import com.example.db.tables.GroupMemberships
 import com.example.db.tables.GroupMessages
 import com.example.db.tables.TrainingGroups
+import com.example.db.tables.Users
 import com.example.util.UtcClock
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -27,6 +28,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.notInList
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.greaterEq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.andWhere
+import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
@@ -124,6 +126,11 @@ fun Route.groupRoutes() {
                     .limit(1)
                     .any()
 
+                val memberCount = GroupMemberships.selectAll()
+                    .where { GroupMemberships.groupId eq groupId }
+                    .count()
+                    .toInt()
+
                 if (!row[TrainingGroups.isPublic] && !isMember) {
                     return@dbQuery TrainingGroupAccess.Denied
                 }
@@ -135,6 +142,7 @@ fun Route.groupRoutes() {
                         description = row[TrainingGroups.description],
                         isPublic = row[TrainingGroups.isPublic],
                         createdAt = row[TrainingGroups.createdAt].toString(),
+                        memberCount = memberCount,
                     ),
                 )
             }
@@ -208,6 +216,30 @@ fun Route.groupRoutes() {
             call.respond(HttpStatusCode.OK)
         }
 
+        delete("/{id}") {
+            call.requireAdmin()
+            val groupId = call.parameters["id"]?.toUuidOrThrow("groupId") ?: throw IllegalArgumentException("Missing id")
+
+            val deleted = dbQuery {
+                val exists = TrainingGroups.selectAll()
+                    .where { TrainingGroups.id eq groupId }
+                    .limit(1)
+                    .any()
+                if (!exists) return@dbQuery false
+
+                GroupMessages.deleteWhere { GroupMessages.groupId eq groupId }
+                GroupMemberships.deleteWhere { GroupMemberships.groupId eq groupId }
+                TrainingGroups.deleteWhere { TrainingGroups.id eq groupId }
+                true
+            }
+
+            if (!deleted) {
+                call.respond(HttpStatusCode.NotFound)
+                return@delete
+            }
+            call.respond(HttpStatusCode.OK)
+        }
+
         get("/{id}/messages") {
             val user = call.requireUser()
             val groupId = call.parameters["id"]?.toUuidOrThrow("groupId") ?: throw IllegalArgumentException("Missing id")
@@ -227,7 +259,9 @@ fun Route.groupRoutes() {
             }
 
             val messages = dbQuery {
-                GroupMessages.selectAll()
+                GroupMessages
+                    .join(Users, JoinType.INNER, onColumn = GroupMessages.userId, otherColumn = Users.id)
+                    .selectAll()
                     .where { GroupMessages.groupId eq groupId }
                     .let { query ->
                         if (after == null) query else query.andWhere { GroupMessages.createdAt greaterEq after }
@@ -241,6 +275,7 @@ fun Route.groupRoutes() {
                             userId = it[GroupMessages.userId].toString(),
                             content = it[GroupMessages.content],
                             createdAt = it[GroupMessages.createdAt].toString(),
+                            senderName = it[Users.displayName],
                         )
                     }
             }
@@ -276,6 +311,7 @@ fun Route.groupRoutes() {
                     userId = user.id.toString(),
                     content = req.content,
                     createdAt = now.toString(),
+                    senderName = user.displayName,
                 )
             }
 

@@ -142,6 +142,7 @@ data class TrainingGroupDto(
     val description: String? = null,
     val isPublic: Boolean,
     val createdAt: String,
+    val memberCount: Int? = null,
 )
 
 @Serializable
@@ -158,6 +159,7 @@ data class GroupMessageDto(
     val userId: String,
     val content: String,
     val createdAt: String,
+    val senderName: String? = null,
 )
 
 @Serializable
