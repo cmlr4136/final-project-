@@ -23,8 +23,8 @@ export const fitnessApi = {
   listExercises: () => apiClient.get<ExerciseDto[]>("/api/exercises"),  listPlans: () => apiClient.get<TrainingPlanDto[]>("/api/plans"),
   listWorkouts: () => apiClient.get<WorkoutSessionDto[]>("/api/workout-sessions"),
   listGroups: () => apiClient.get<TrainingGroupDto[]>("/api/groups"), // get all groups
-  getMyGroups: () => apiClient.get("/api/groups"),
-  getDiscoverGroups: () => apiClient.get("/api/groups"),
+  getMyGroups: () => apiClient.get<TrainingGroupDto[]>("/api/groups/my"),
+  getDiscoverGroups: () => apiClient.get<TrainingGroupDto[]>("/api/groups/discover"),
   getGroupDetails: (groupId: string | number) => apiClient.get<TrainingGroupDto>(`/api/groups/${groupId}`), // get details of a specific group
   joinGroup: (groupId: string | number) => apiClient.post<void>(`/api/groups/${groupId}/join`), // join a group
   leaveGroup: (groupId: string | number) => apiClient.post<void>(`/api/groups/${groupId}/leave`), // leave a group
@@ -34,5 +34,5 @@ export const fitnessApi = {
   },
   sendMessage: (groupId: string | number, content: string) => apiClient.post<GroupMessageDto>(`/api/groups/${groupId}/messages`, { content }), // send a message to a group
   createGroup: (data: { name: string; description: string }) => apiClient.post("/api/groups", data),
-  deleteGroup: (groupId: string) => apiClient.delete(`/api/groups/${groupId}`),
+  deleteGroup: (groupId: string) => apiClient.del(`/api/groups/${groupId}`),
 };

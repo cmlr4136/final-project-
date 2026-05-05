@@ -65,5 +65,6 @@ export type GroupMessageDto = {
   userId: string;
   content: string;
   createdAt: string;
+  senderName?: string;
 };
 
