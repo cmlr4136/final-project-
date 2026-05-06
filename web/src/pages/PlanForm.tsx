@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { fitnessApi } from "@/api/fitnessApi";
+import { useLocation } from "react-router-dom";
 
 type ExerciseEntry = {
   id: number;
@@ -59,6 +60,8 @@ export default function PlanForm() {
   const [nextId, setNextId] = useState(2);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const location = useLocation();
+
 
  useEffect(() => {
   if (isEditing && id) {
@@ -66,14 +69,14 @@ export default function PlanForm() {
       .then((plan) => {
         setPlanName(plan.name);
         setPlanGoal(plan.goal || "");
+        setExercises(plan.exercises || []); // <-- MISSING PART FIX
       })
       .catch(() => {
         setError("Plan not found");
-        navigate("/plans");
+        navigate("/plans", { state: { refresh: Date.now() } });
       });
   }
-}, [id]);
-
+}, [id, isEditing, navigate]);
 
   function handleChange(id: number, field: keyof ExerciseEntry, value: string) {
     setExercises((prev) => prev.map((e) => (e.id === id ? { ...e, [field]: value } : e)));

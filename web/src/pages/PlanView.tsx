@@ -12,16 +12,12 @@ export default function PlanView() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!id) return;
-    
-    // Zakładam, że masz metodę getPlan w fitnessApi. 
-    // Jeśli nie, możesz na razie pobrać wszystkie plany i przefiltrować:
-    // fitnessApi.listPlans().then(plans => setPlan(plans.find(p => p.id === id)))
-    fitnessApi.getPlan(id)
-      .then(setPlan)
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, [id]);
+  fitnessApi.getPlan(id)
+    .then(setPlan)
+    .catch(() => {
+      navigate("/plans"); 
+    });
+}, [id]);
 
   if (loading) return <p className="text-sm text-zinc-500 mt-4">Loading plan...</p>;
   if (error || !plan) return <p className="text-sm text-red-500 mt-4">{error || "Plan not found"}</p>;
