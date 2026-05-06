@@ -88,6 +88,132 @@ class ApplicationTest {
             contentType(ContentType.Application.Json)
             setBody("""{"content":"Hi everyone"}""")
         }.also { assertEquals(HttpStatusCode.Created, it.status) }
+            .let { res ->
+                val senderName = res.bodyAsJson()["senderName"]?.jsonPrimitive?.content
+                assertEquals("User2", senderName)
+            }
+    }
+
+    @Test
+    fun testGroupListsAndDetails() = testApplication {
+        application { module() }
+
+        val adminToken = login(email = "admin@example.com", password = "admin")
+        val userToken = register(email = "u3@example.com", password = "pass123", displayName = "User3")
+
+        val groupId = client.post("/api/groups") {
+            bearer(adminToken)
+            contentType(ContentType.Application.Json)
+            setBody("""{"name":"Cycling Club","description":"Weekend rides","isPublic":true}""")
+        }.also { assertEquals(HttpStatusCode.Created, it.status) }
+            .bodyAsJson()["id"]?.jsonPrimitive?.content
+        assertNotNull(groupId)
+
+        client.get("/api/groups/my") {
+            bearer(adminToken)
+        }.also { assertEquals(HttpStatusCode.OK, it.status) }
+            .let { res ->
+                val arr = json.parseToJsonElement(res.bodyAsText()).jsonArray
+                val ids = arr.mapNotNull { it.jsonObject["id"]?.jsonPrimitive?.content }.toSet()
+                assertEquals(true, ids.contains(groupId))
+            }
+
+        client.get("/api/groups/discover") {
+            bearer(userToken)
+        }.also { assertEquals(HttpStatusCode.OK, it.status) }
+            .let { res ->
+                val arr = json.parseToJsonElement(res.bodyAsText()).jsonArray
+                val ids = arr.mapNotNull { it.jsonObject["id"]?.jsonPrimitive?.content }.toSet()
+                assertEquals(true, ids.contains(groupId))
+            }
+
+        client.get("/api/groups/my") {
+            bearer(userToken)
+        }.also { assertEquals(HttpStatusCode.OK, it.status) }
+            .let { res ->
+                val arr = json.parseToJsonElement(res.bodyAsText()).jsonArray
+                assertEquals(0, arr.size)
+            }
+
+        client.get("/api/groups/$groupId") {
+            bearer(userToken)
+        }.also { assertEquals(HttpStatusCode.OK, it.status) }
+            .let { res ->
+                val memberCount = res.bodyAsJson()["memberCount"]?.jsonPrimitive?.content?.toInt()
+                assertEquals(1, memberCount)
+            }
+
+        client.post("/api/groups/$groupId/join") {
+            bearer(userToken)
+        }.also { assertEquals(HttpStatusCode.OK, it.status) }
+
+        client.get("/api/groups/$groupId") {
+            bearer(userToken)
+        }.also { assertEquals(HttpStatusCode.OK, it.status) }
+            .let { res ->
+                val memberCount = res.bodyAsJson()["memberCount"]?.jsonPrimitive?.content?.toInt()
+                assertEquals(2, memberCount)
+            }
+
+        client.get("/api/groups/my") {
+            bearer(userToken)
+        }.also { assertEquals(HttpStatusCode.OK, it.status) }
+            .let { res ->
+                val arr = json.parseToJsonElement(res.bodyAsText()).jsonArray
+                val ids = arr.mapNotNull { it.jsonObject["id"]?.jsonPrimitive?.content }.toSet()
+                assertEquals(true, ids.contains(groupId))
+            }
+
+        val firstMsgCreatedAt = client.post("/api/groups/$groupId/messages") {
+            bearer(userToken)
+            contentType(ContentType.Application.Json)
+            setBody("""{"content":"msg1"}""")
+        }.also { assertEquals(HttpStatusCode.Created, it.status) }
+            .bodyAsJson()["createdAt"]?.jsonPrimitive?.content
+        assertNotNull(firstMsgCreatedAt)
+
+        client.post("/api/groups/$groupId/messages") {
+            bearer(userToken)
+            contentType(ContentType.Application.Json)
+            setBody("""{"content":"msg2"}""")
+        }.also { assertEquals(HttpStatusCode.Created, it.status) }
+
+        client.get("/api/groups/$groupId/messages?after=$firstMsgCreatedAt") {
+            bearer(userToken)
+        }.also { assertEquals(HttpStatusCode.OK, it.status) }
+            .let { res ->
+                val arr = json.parseToJsonElement(res.bodyAsText()).jsonArray
+                val contents = arr.mapNotNull { it.jsonObject["content"]?.jsonPrimitive?.content }.toSet()
+                assertEquals(true, contents.contains("msg2"))
+            }
+    }
+
+    @Test
+    fun testAdminCanDeleteGroup() = testApplication {
+        application { module() }
+
+        val adminToken = login(email = "admin@example.com", password = "admin")
+        val userToken = register(email = "u4@example.com", password = "pass123", displayName = "User4")
+
+        val groupId = client.post("/api/groups") {
+            bearer(adminToken)
+            contentType(ContentType.Application.Json)
+            setBody("""{"name":"Temp Group","description":"temp","isPublic":true}""")
+        }.also { assertEquals(HttpStatusCode.Created, it.status) }
+            .bodyAsJson()["id"]?.jsonPrimitive?.content
+        assertNotNull(groupId)
+
+        client.delete("/api/groups/$groupId") {
+            bearer(userToken)
+        }.also { assertEquals(HttpStatusCode.Forbidden, it.status) }
+
+        client.delete("/api/groups/$groupId") {
+            bearer(adminToken)
+        }.also { assertEquals(HttpStatusCode.OK, it.status) }
+
+        client.get("/api/groups/$groupId") {
+            bearer(adminToken)
+        }.also { assertEquals(HttpStatusCode.NotFound, it.status) }
     }
 
     private suspend fun ApplicationTestBuilder.register(email: String, password: String, displayName: String): String {
