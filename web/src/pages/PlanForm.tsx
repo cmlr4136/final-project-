@@ -130,6 +130,16 @@ export default function PlanForm() {
     setExercises((prev) => prev.filter((e) => e.id !== id));
   }
 
+async function handleDelete() {
+    if (!id) return;
+    try {
+      await fitnessApi.deletePlan(id);
+      navigate("/plans");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to delete plan");
+    }
+  }
+
   async function handleSave() {
     if (!planName.trim()) return setError("Plan name is required");
     
@@ -145,17 +155,27 @@ export default function PlanForm() {
         await fitnessApi.updatePlan(currentPlanId!, { name: planName, goal: planGoal || null });
       }
 
-      // 5. Fire off all the API calls to save the individual exercise items to that plan!
-      if (!isEditing && currentPlanId) {
+// 5. Fire off all the API calls to save the individual exercise items to that plan!
+      if (currentPlanId) {
+        
+        // --- NEW: If editing, wipe the old exercises first to prevent duplicates! ---
+        if (isEditing) {
+          const oldPlan = await fitnessApi.getPlan(currentPlanId);
+          if (oldPlan.exercises && oldPlan.exercises.length > 0) {
+            await Promise.all(oldPlan.exercises.map(ex => fitnessApi.deletePlanItem(ex.id)));
+          }
+        }
+
+        // --- Now insert the new ones from the form ---
         await Promise.all(
           exercises.map((ex) => {
-            if (!ex.exerciseId) return Promise.resolve(); // Skip if they left the dropdown blank
+            if (!ex.exerciseId) return Promise.resolve();
             return fitnessApi.addPlanItem(currentPlanId!, {
               exerciseId: ex.exerciseId,
               targetSets: ex.sets ? parseInt(ex.sets) : undefined,
               targetReps: ex.reps ? parseInt(ex.reps) : undefined,
               targetWeight: ex.weight ? parseFloat(ex.weight) : undefined,
-              targetDurationSec: ex.time ? parseInt(ex.time) * 60 : undefined, // Convert mins to seconds
+              targetDurationSec: ex.time ? parseInt(ex.time) * 60 : undefined,
             });
           })
         );
@@ -206,6 +226,11 @@ export default function PlanForm() {
         <button onClick={handleSave} disabled={saving} className="rounded-md bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-700 disabled:opacity-50">
           {saving ? "Saving..." : "Save Plan"}
         </button>
+        {isEditing && (
+          <button onClick={handleDelete} type="button" className="rounded-md border border-red-300 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+            Delete Plan
+          </button>
+        )}
       </div>
     </section>
   );
