@@ -43,10 +43,10 @@ export const fitnessApi = {
   updatePlan: (id: string, body: unknown) => apiClient.put<TrainingPlanDto>(`/api/plans/${id}`, body),
   deletePlan: (id: string) => apiClient.del<void>(`/api/plans/${id}`),
   createPlan: (body: unknown) => apiClient.post<TrainingPlanDto>("/api/plans", body),
-  createWorkout: (body: { notes: string | null }) =>
-    apiClient.post<WorkoutSessionDto>("/api/workout-sessions", body),
   addPlanItem: (planId: string, item: AddPlanItemRequest) => 
     apiClient.post(`/api/plans/${planId}/items`, item),
   deletePlanItem: (itemId: string) => apiClient.del(`/api/plan-items/${itemId}`),
+  createWorkout: (body: { planId?: string | null; notes?: string | null }) => apiClient.post<WorkoutSessionDto>("/api/workout-sessions", body),
+  addSetEntry: (sessionId: string, body: { exerciseId: string; setIndex: number; reps?: number; weight?: number; durationSec?: number }) => apiClient.post(`/api/workout-sessions/${sessionId}/sets`, body),
 };
 
