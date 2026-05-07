@@ -25,6 +25,21 @@ export default function PlanView() {
     }
   }, [id]);
 
+  const startPlanWorkout = () => {
+  // 1. Get exercises from the current plan
+  const exercisesToStart = plan.exercises.map(ex => ({
+    exerciseId: ex.id,
+    name: ex.name,
+    sets: ex.targetSets,
+    reps: ex.targetReps,
+    weight: ex.targetWeight
+  }));
+
+  // 2. Set them in your workout store and navigate
+  setExercises(exercisesToStart); 
+  navigate("/workouts/active");
+};
+
   if (error) return <p className="text-sm text-red-500 p-4">{error}</p>;
   if (!plan) return <p className="p-4 text-zinc-500">Loading plan...</p>;
 
