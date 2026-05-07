@@ -49,7 +49,10 @@ export default function PlanView() {
         <h1 className="text-xl font-semibold text-zinc-900">Plan Details</h1>
         <div className="flex gap-2">
           <button onClick={() => navigate("/plans")} className="rounded-md border border-zinc-300 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100">Back</button>
-          <Link to={`/plans/${id}/edit`} className="rounded-md bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-700">Edit Plan</Link>
+          <Link to={`/plans/${id}/edit`} className="rounded-md border border-zinc-300 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100">Edit Plan</Link>
+          <button onClick={() => navigate(`/workouts?planId=${id}`)} className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 shadow-sm">
+            Start Workout
+          </button>
         </div>
       </div>
 
