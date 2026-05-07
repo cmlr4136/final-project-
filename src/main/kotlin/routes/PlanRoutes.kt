@@ -120,6 +120,22 @@ fun Route.planRoutes() {
                 ?: throw IllegalArgumentException("Missing id")
 
             val plan = dbQuery {
+                // 1. FIRST, fetch all the exercise items for this plan!
+                val items = PlanItems.selectAll()
+                    .where { PlanItems.planId eq planId }
+                    .map {
+                        PlanItemDto(
+                            id = it[PlanItems.id].toString(),
+                            planId = it[PlanItems.planId].toString(),
+                            exerciseId = it[PlanItems.exerciseId].toString(),
+                            targetSets = it[PlanItems.targetSets],
+                            targetReps = it[PlanItems.targetReps],
+                            targetWeight = it[PlanItems.targetWeight],
+                            targetDurationSec = it[PlanItems.targetDurationSec],
+                        )
+                    }
+
+                // 2. THEN, fetch the plan and attach the items we just found!
                 TrainingPlans.selectAll()
                     .where { TrainingPlans.id eq planId and (TrainingPlans.userId eq user.id) }
                     .map {
@@ -127,7 +143,8 @@ fun Route.planRoutes() {
                             id = it[TrainingPlans.id].toString(),
                             name = it[TrainingPlans.name],
                             goal = it[TrainingPlans.goal],
-                            createdAt = it[TrainingPlans.createdAt].toString()
+                            createdAt = it[TrainingPlans.createdAt].toString(),
+                            exercises = items // <--- Attach them here!
                         )
                     }.singleOrNull()
             }

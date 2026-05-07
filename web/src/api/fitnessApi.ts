@@ -16,6 +16,7 @@ import type {
   TrainingGroupDto,
   TrainingPlanDto,
   WorkoutSessionDto,
+  AddPlanItemRequest
 } from "@/api/types";
 
 export const fitnessApi = {
@@ -44,5 +45,8 @@ export const fitnessApi = {
   createPlan: (body: unknown) => apiClient.post<TrainingPlanDto>("/api/plans", body),
   createWorkout: (body: { notes: string | null }) =>
     apiClient.post<WorkoutSessionDto>("/api/workout-sessions", body),
+  addPlanItem: (planId: string, item: AddPlanItemRequest) => 
+    apiClient.post(`/api/plans/${planId}/items`, item),
+  deletePlanItem: (itemId: string) => apiClient.del(`/api/plan-items/${itemId}`),
 };
 
