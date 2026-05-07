@@ -22,12 +22,109 @@ fun Route.planRoutes() {
             val plans = dbQuery {
                 TrainingPlans.selectAll()
                     .where { TrainingPlans.userId eq user.id }
+<<<<<<< HEAD
+=======
+                    .orderBy(TrainingPlans.createdAt, org.jetbrains.exposed.sql.SortOrder.DESC)
                     .map {
                         TrainingPlanDto(
                             id = it[TrainingPlans.id].toString(),
                             name = it[TrainingPlans.name],
                             goal = it[TrainingPlans.goal],
-                            createdAt = it[TrainingPlans.createdAt].toString()
+                            createdAt = it[TrainingPlans.createdAt].toString(),
+                        )
+                    }
+            }
+            call.respond(plans)
+        }
+
+        post {
+            val user = call.requireUser()
+            val req = call.receive<CreatePlanRequest>()
+            if (req.name.isBlank()) throw IllegalArgumentException("name required")
+
+            val id = UUID.randomUUID()
+            val now = UtcClock.now()
+            dbQuery {
+                TrainingPlans.insert {
+                    it[TrainingPlans.id] = id
+                    it[userId] = user.id
+                    it[name] = req.name
+                    it[goal] = req.goal
+                    it[createdAt] = now
+                }
+            }
+
+            call.respond(
+                HttpStatusCode.Created,
+                TrainingPlanDto(id = id.toString(), name = req.name, goal = req.goal, createdAt = now.toString()),
+            )
+        }
+
+        put("/{id}") {
+            val user = call.requireUser()
+            val planId = call.parameters["id"]?.toUuidOrThrow("planId") ?: throw IllegalArgumentException("Missing id")
+            val req = call.receive<UpdatePlanRequest>()
+            if (req.name.isBlank()) throw IllegalArgumentException("name required")
+
+            val updated = dbQuery {
+                TrainingPlans.update({ TrainingPlans.id eq planId and (TrainingPlans.userId eq user.id) }) {
+                    it[name] = req.name
+                    it[goal] = req.goal
+                }
+            }
+
+            if (updated == 0) {
+                call.respond(HttpStatusCode.NotFound)
+                return@put
+            }
+            call.respond(HttpStatusCode.OK)
+        }
+
+        delete("/{id}") {
+            val user = call.requireUser()
+            val planId = call.parameters["id"]?.toUuidOrThrow("planId") ?: throw IllegalArgumentException("Missing id")
+            val deleted = dbQuery {
+                TrainingPlans.deleteWhere { TrainingPlans.id eq planId and (TrainingPlans.userId eq user.id) }
+            }
+            if (deleted == 0) {
+                call.respond(HttpStatusCode.NotFound)
+                return@delete
+            }
+            call.respond(HttpStatusCode.OK)
+        }
+
+        get("/{id}") {
+            val user = call.requireUser()
+            val planId = call.parameters["id"]?.toUuidOrThrow("planId") 
+                ?: throw IllegalArgumentException("Missing id")
+
+            val plan = dbQuery {
+                // 1. FIRST, fetch all the exercise items for this plan!
+                val items = PlanItems.selectAll()
+                    .where { PlanItems.planId eq planId }
+                    .map {
+                        PlanItemDto(
+                            id = it[PlanItems.id].toString(),
+                            planId = it[PlanItems.planId].toString(),
+                            exerciseId = it[PlanItems.exerciseId].toString(),
+                            targetSets = it[PlanItems.targetSets],
+                            targetReps = it[PlanItems.targetReps],
+                            targetWeight = it[PlanItems.targetWeight],
+                            targetDurationSec = it[PlanItems.targetDurationSec],
+                        )
+                    }
+
+                // 2. THEN, fetch the plan and attach the items we just found!
+                TrainingPlans.selectAll()
+                    .where { TrainingPlans.id eq planId and (TrainingPlans.userId eq user.id) }
+>>>>>>> 9b208e04fd50e9ca372c353866b8c742605ab030
+                    .map {
+                        TrainingPlanDto(
+                            id = it[TrainingPlans.id].toString(),
+                            name = it[TrainingPlans.name],
+                            goal = it[TrainingPlans.goal],
+                            createdAt = it[TrainingPlans.createdAt].toString(),
+                            exercises = items // <--- Attach them here!
                         )
                     }
             }

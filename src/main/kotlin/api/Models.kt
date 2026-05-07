@@ -61,6 +61,7 @@ data class TrainingPlanDto(
     val goal: String?,
     val createdAt: String,
     val exercises: List<PlanItemDto> = listOf() 
+    val exercises: List<PlanItemDto> = emptyList()
 )
 
 @Serializable

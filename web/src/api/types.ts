@@ -41,6 +41,7 @@ export type TrainingPlanDto = {
   name: string;
   goal?: string | null;
   createdAt: string;
+  exercises?: PlanItemDto[];
 };
 
 export type WorkoutSessionDto = {
@@ -68,4 +69,20 @@ export type GroupMessageDto = {
   createdAt: string;
   senderName?: string;
 };
+export interface AddPlanItemRequest {
+  exerciseId: string;
+  targetSets?: number;
+  targetReps?: number;
+  targetWeight?: number;
+  targetDurationSec?: number;
+}
 
+export interface PlanItemDto {
+  id: string;
+  planId: string;
+  exerciseId: string;
+  targetSets?: number;
+  targetReps?: number;
+  targetWeight?: number;
+  targetDurationSec?: number;
+}
