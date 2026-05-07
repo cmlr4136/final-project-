@@ -12,19 +12,29 @@ export default function PlanView() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+  setLoading(true); // Ensure loading starts as true
+  
   fitnessApi.getPlan(id)
-    .then(setPlan)
-    .catch(() => {
-      navigate("/plans"); 
+    .then((data) => {
+      setPlan(data);
+      setLoading(false); // SUCCESS: Stop loading
+    })
+    .catch((err) => {
+      console.error("Fetch error:", err);
+      setError("Failed to load plan details.");
+      setLoading(false); // ERROR: Stop loading so we can see the error message
     });
 }, [id]);
+
+
+if (loading) return <p className="text-sm text-zinc-500 mt-4">Loading plan...</p>;
+if (error || !plan) return <p className="text-sm text-red-500 mt-4">{error || "Plan not found"}</p>;
 
   if (loading) return <p className="text-sm text-zinc-500 mt-4">Loading plan...</p>;
   if (error || !plan) return <p className="text-sm text-red-500 mt-4">{error || "Plan not found"}</p>;
 
   return (
     <section className="space-y-6">
-      {/* Nagłówek i przyciski akcji */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold text-zinc-900">{plan.name}</h1>
@@ -46,11 +56,9 @@ export default function PlanView() {
         </div>
       </div>
 
-      {/* Lista ćwiczeń (Tylko do odczytu) */}
       <div className="space-y-4 mt-6">
         <h2 className="text-base font-semibold text-zinc-900">Exercises in this plan:</h2>
         
-        {/* Zakładam że plan posiada tablicę exercises. Zmień jeśli nazywa się inaczej */}
         {plan.exercises && plan.exercises.length > 0 ? (
           plan.exercises.map((ex: any, index: number) => (
             <div key={index} className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm space-y-3">

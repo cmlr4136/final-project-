@@ -42,5 +42,7 @@ export const fitnessApi = {
   updatePlan: (id: string, body: unknown) => apiClient.put<TrainingPlanDto>(`/api/plans/${id}`, body),
   deletePlan: (id: string) => apiClient.del<void>(`/api/plans/${id}`),
   createPlan: (body: unknown) => apiClient.post<TrainingPlanDto>("/api/plans", body),
+  createWorkout: (body: { notes: string | null }) =>
+    apiClient.post<WorkoutSessionDto>("/api/workout-sessions", body),
 };
 

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { useState, useEffect } from "react";
 import { fitnessApi } from "@/api/fitnessApi";
 import type { TrainingPlanDto } from "@/api/types";
@@ -72,16 +71,3 @@ useEffect(() => {
     </section>
   );
 }
-=======
-//Used for page with workouts created from Start Plan
-
-export default function Plans() {
-  return (
-    <section className="space-y-2">
-      <h1 className="text-base font-semibold text-zinc-900">Plans</h1>
-      <p className="text-sm text-zinc-600">Placeholder page. Later: CRUD training plans.</p>
-    </section>
-  );
-}
-
->>>>>>> 99720e69caaa1f475c7abc2bbc5e0cdab5e289d0

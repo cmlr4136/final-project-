@@ -10,6 +10,8 @@ import Settings from "@/pages/Settings";
 import Plans from "./pages/Plans";
 import PlanView from "./pages/PlanView";
 import PlanForm from "./pages/PlanForm";
+import Workouts from "@/pages/Workouts";
+
 
 export default function App() {
   return (
@@ -29,6 +31,8 @@ export default function App() {
           <Route path="/plans/new" element={<PlanForm />} />
           <Route path="/plans/:id" element={<PlanView />} />
           <Route path="/plans/:id/edit" element={<PlanForm />} />
+          <Route path="/workouts" element={<Workouts />} />
+
               
         </Route>
 

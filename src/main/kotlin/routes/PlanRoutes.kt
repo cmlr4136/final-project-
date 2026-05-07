@@ -114,34 +114,29 @@ fun Route.planRoutes() {
             call.respond(HttpStatusCode.OK)
         }
 
-        get("/{id}/items") {
+        get("/{id}") {
             val user = call.requireUser()
-            val planId = call.parameters["id"]?.toUuidOrThrow("planId") ?: throw IllegalArgumentException("Missing id")
+            val planId = call.parameters["id"]?.toUuidOrThrow("planId") 
+                ?: throw IllegalArgumentException("Missing id")
 
-            val items = dbQuery {
-                val own = TrainingPlans.selectAll().where { TrainingPlans.id eq planId and (TrainingPlans.userId eq user.id) }.limit(1).any()
-                if (!own) return@dbQuery null
-
-                PlanItems.selectAll()
-                    .where { PlanItems.planId eq planId }
+            val plan = dbQuery {
+                TrainingPlans.selectAll()
+                    .where { TrainingPlans.id eq planId and (TrainingPlans.userId eq user.id) }
                     .map {
-                        PlanItemDto(
-                            id = it[PlanItems.id].toString(),
-                            planId = it[PlanItems.planId].toString(),
-                            exerciseId = it[PlanItems.exerciseId].toString(),
-                            targetSets = it[PlanItems.targetSets],
-                            targetReps = it[PlanItems.targetReps],
-                            targetWeight = it[PlanItems.targetWeight],
-                            targetDurationSec = it[PlanItems.targetDurationSec],
+                        TrainingPlanDto(
+                            id = it[TrainingPlans.id].toString(),
+                            name = it[TrainingPlans.name],
+                            goal = it[TrainingPlans.goal],
+                            createdAt = it[TrainingPlans.createdAt].toString()
                         )
-                    }
+                    }.singleOrNull()
             }
 
-            if (items == null) {
+            if (plan == null) {
                 call.respond(HttpStatusCode.NotFound)
-                return@get
+            } else {
+                call.respond(plan)
             }
-            call.respond(items)
         }
 
         post("/{id}/items") {
