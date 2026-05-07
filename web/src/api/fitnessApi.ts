@@ -48,5 +48,6 @@ export const fitnessApi = {
   addPlanItem: (planId: string, item: AddPlanItemRequest) => 
     apiClient.post(`/api/plans/${planId}/items`, item),
   deletePlanItem: (itemId: string) => apiClient.del(`/api/plan-items/${itemId}`),
+  getWorkout: (id: string) => apiClient.get<WorkoutSessionDto>(`/api/workout-sessions/${id}`),
 };
 
