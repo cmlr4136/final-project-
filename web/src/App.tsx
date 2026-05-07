@@ -5,9 +5,13 @@ import Exercises from "@/pages/Exercises";
 import GroupChat from "@/pages/GroupChat";
 import Groups from "@/pages/Groups";
 import Login from "@/pages/auth/Login";
-import Plans from "@/pages/Plans";
 import Register from "@/pages/auth/Register";
 import Settings from "@/pages/Settings";
+import Plans from "./pages/Plans";
+import PlanView from "./pages/PlanView";
+import PlanForm from "./pages/PlanForm";
+import Workouts from "@/pages/Workouts";
+
 
 export default function App() {
   return (
@@ -20,10 +24,16 @@ export default function App() {
 
         <Route element={<AppShell />}>
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/plans" element={<Plans />} />
           <Route path="/groups" element={<Groups />} />
           <Route path="/exercises" element={<Exercises />} />
-          <Route path="/settings" element={<Settings />} />        
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/plans" element={<Plans />} />
+          <Route path="/plans/new" element={<PlanForm />} />
+          <Route path="/plans/:id" element={<PlanView />} />
+          <Route path="/plans/:id/edit" element={<PlanForm />} />
+          <Route path="/workouts" element={<Workouts />} />
+
+              
         </Route>
 
         <Route path="/groups/:groupId" element={<GroupChat />} />

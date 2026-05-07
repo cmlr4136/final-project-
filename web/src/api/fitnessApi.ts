@@ -4,6 +4,9 @@
  */
 
 import { apiClient } from "@/api/client";
+
+
+
 import type {
   AuthResponse,
   ExerciseDto,
@@ -34,5 +37,12 @@ export const fitnessApi = {
   },
   sendMessage: (groupId: string | number, content: string) => apiClient.post<GroupMessageDto>(`/api/groups/${groupId}/messages`, { content }), // send a message to a group
   createGroup: (data: { name: string; description: string }) => apiClient.post("/api/groups", data),
-  deleteGroup: (groupId: string) => apiClient.del(`/api/groups/${groupId}`),
+    deleteGroup: (groupId: string) => apiClient.del(`/api/groups/${groupId}`),
+  getPlan: (id: string) => apiClient.get<TrainingPlanDto>(`/api/plans/${id}`),
+  updatePlan: (id: string, body: unknown) => apiClient.put<TrainingPlanDto>(`/api/plans/${id}`, body),
+  deletePlan: (id: string) => apiClient.del<void>(`/api/plans/${id}`),
+  createPlan: (body: unknown) => apiClient.post<TrainingPlanDto>("/api/plans", body),
+  createWorkout: (body: { notes: string | null }) =>
+    apiClient.post<WorkoutSessionDto>("/api/workout-sessions", body),
 };
+

@@ -14,6 +14,7 @@ data class UserDto(
     val displayName: String,
     val isAdmin: Boolean,
     val createdAt: String,
+    val exercises: List<PlanItemDto> = listOf()
 )
 
 @Serializable
