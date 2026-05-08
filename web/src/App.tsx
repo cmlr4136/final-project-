@@ -11,6 +11,8 @@ import Plans from "./pages/Plans";
 import PlanView from "./pages/PlanView";
 import PlanForm from "./pages/PlanForm";
 import Workouts from "@/pages/Workouts";
+import WorkoutView from "@/pages/WorkoutView";
+
 
 
 export default function App() {
@@ -32,7 +34,7 @@ export default function App() {
           <Route path="/plans/:id" element={<PlanView />} />
           <Route path="/plans/:id/edit" element={<PlanForm />} />
           <Route path="/workouts" element={<Workouts />} />
-
+          <Route path="/workouts/:id" element={<WorkoutView />} />
               
         </Route>
 

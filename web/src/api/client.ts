@@ -20,7 +20,7 @@ function apiBaseUrl(): string {
 }
 
 async function request<T>(
-  method: "GET" | "POST" | "PUT" | "DELETE",
+  method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
   path: string,
   body?: unknown,
 ): Promise<T> {
@@ -72,4 +72,5 @@ export const apiClient = {
   post: <T>(path: string, body?: unknown) => request<T>("POST", path, body),
   put: <T>(path: string, body?: unknown) => request<T>("PUT", path, body),
   del: <T>(path: string) => request<T>("DELETE", path),
+  patch: <T>(path: string, body?: unknown) => request<T>("PATCH", path, body),
 };

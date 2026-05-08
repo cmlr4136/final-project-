@@ -36,6 +36,16 @@ export type ExerciseDto = {
   createdAt: string;
 };
 
+export type PlanItemDto = {
+  id: string;
+  planId: string;
+  exerciseId: string;
+  targetSets?: number | null;
+  targetReps?: number | null;
+  targetWeight?: number | null;
+  targetDurationSec?: number | null;
+};
+
 export type TrainingPlanDto = {
   id: string;
   name: string;
@@ -77,12 +87,4 @@ export interface AddPlanItemRequest {
   targetDurationSec?: number;
 }
 
-export interface PlanItemDto {
-  id: string;
-  planId: string;
-  exerciseId: string;
-  targetSets?: number;
-  targetReps?: number;
-  targetWeight?: number;
-  targetDurationSec?: number;
-}
+
