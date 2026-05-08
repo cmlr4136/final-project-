@@ -73,12 +73,10 @@ useEffect(() => {
               className="cursor-pointer flex items-center justify-between rounded-xl border border-zinc-200 bg-white px-4 py-3 shadow-sm hover:bg-zinc-50"
             >
               <p className="text-sm font-medium text-zinc-900">
-                {new Date(w.startedAt).toLocaleDateString()}
+                {w.notes ?? "Workout"}
               </p>
               <p className="text-sm text-zinc-500">
-                {w.endedAt
-                  ? `${Math.round((new Date(w.endedAt).getTime() - new Date(w.startedAt).getTime()) / 60000)} min`
-                  : "In progress"}
+                {new Date(w.startedAt).toLocaleDateString()}
               </p>
             </div>
           ))}
