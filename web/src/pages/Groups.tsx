@@ -11,12 +11,10 @@ export default function Groups() {
   const user = useAuthStore((state) => state.user);
   const isAdmin = user?.isAdmin === true; 
 
-  // -- Data States --
   const [myGroups, setMyGroups] = useState<TrainingGroupDto[]>([]);
   const [discoverGroups, setDiscoverGroups] = useState<TrainingGroupDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // -- NEW: Modal States --
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [newGroupDesc, setNewGroupDesc] = useState('');
@@ -50,25 +48,21 @@ export default function Groups() {
     }
   };
 
-  // -- NEW: Handle Form Submission --
   const handleCreateGroup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newGroupName.trim() || !newGroupDesc.trim()) return;
 
     setIsCreating(true);
     try {
-      // Send the new group to the backend
       await fitnessApi.createGroup({
         name: newGroupName,
         description: newGroupDesc
       });
       
-      // Close modal and clear form
       setIsModalOpen(false);
       setNewGroupName('');
       setNewGroupDesc('');
       
-      // Re-fetch the groups so the new one appears instantly!
       await fetchGroups(); 
       
     } catch (error) {
@@ -86,7 +80,6 @@ export default function Groups() {
       <header className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm px-4 py-5 flex items-center justify-between border-b border-gray-200 shadow-sm">
         <h1 className="text-2xl font-semibold">Training Groups</h1>
         <div className="flex gap-4 text-gray-900">
-          {/* Wire the Plus icon to open the modal */}
           {isAdmin && (
             <button 
               onClick={() => setIsModalOpen(true)}
@@ -100,7 +93,6 @@ export default function Groups() {
       </header>
 
       <main className="p-4 space-y-8">
-        {/* --- YOUR EXISTING SECTIONS STAY EXACTLY THE SAME --- */}
         <section>
           <h2 className="text-lg font-medium text-gray-900 mb-3">Your Groups:</h2>
           {myGroups.length === 0 ? (
@@ -152,7 +144,6 @@ export default function Groups() {
         </section>
       </main>
 
-      {/* --- NEW: CREATE GROUP MODAL --- */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">

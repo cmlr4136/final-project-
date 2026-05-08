@@ -8,7 +8,6 @@ export default function FitTrackBadge({ className = "w-10 h-10" }: { className?:
       xmlns="http://www.w3.org/2000/svg" 
       className={className}
     >
-      {/* Bold, clean black 'F' matching your image */}
       <path d="M25 15H80V32H45V46H72V63H45V90H25V15Z" fill="#111827"/>
     </svg>
   );

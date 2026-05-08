@@ -1,7 +1,6 @@
-/*
- * 这个文件做什么：注册/登录/退出（最简认证）。
- * What this file is for: register/login/logout (minimal auth).
- * 这是登录注册的接口
+/**
+ * This file defines the API endpoints for user registration, login, and logout.
+ * It manages user identity verification, password hashing for security.
  */
 
 package com.example.routes
@@ -29,6 +28,8 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import java.time.Duration
 import java.util.UUID
+
+
 
 fun Route.authRoutes() {
     route("/auth") {

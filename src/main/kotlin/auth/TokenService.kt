@@ -1,6 +1,7 @@
 /*
  * 这个文件做什么：生成/存储/撤销登录 token（简化版）。
- * What this file is for: issue/store/revoke login tokens (minimal).
+ * This file manages the lifecycle of the login session 
+ * by interracting with the authtokens table in the database
  */
 
 package com.example.auth

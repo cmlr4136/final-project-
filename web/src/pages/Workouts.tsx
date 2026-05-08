@@ -18,7 +18,6 @@ function newEntry(id: number): WorkoutEntry {
   return { id, exercise: null, sets: "", reps: "", weight: "", time: "", search: "", results: [] };
 }
 
-// Helper to format seconds into MM:SS
 function formatTime(totalSeconds: number) {
   const m = Math.floor(totalSeconds / 60).toString().padStart(2, "0");
   const s = (totalSeconds % 60).toString().padStart(2, "0");
@@ -34,57 +33,48 @@ export default function Workouts() {
   const [nextId, setNextId] = useState(2);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [allExercises, setAllExercises] = useState<ExerciseDto[]>([]);
   const [workoutTitle, setWorkoutTitle] = useState("New Workout");
   const [workoutName, setWorkoutName] = useState("");
-
-
-  
-  // --- LIVE TIMER STATE ---
   const [seconds, setSeconds] = useState(0);
 
-  // 1. Start the Timer
   useEffect(() => {
     const interval = setInterval(() => {
       setSeconds((s) => s + 1);
     }, 1000);
-    return () => clearInterval(interval); // Cleanup when page closes
+    return () => clearInterval(interval);
   }, []);
 
-  // 2. Fetch Exercises and (Optionally) the Plan
   useEffect(() => {
     Promise.all([
       fitnessApi.listExercises(),
       planId ? fitnessApi.getPlan(planId) : Promise.resolve(null)
     ])
-    .then(([exData, planData]) => {
-      setAllExercises(exData);
-
-      if (planData) {
-        setWorkoutTitle(planData.name); // Change the title!
-        
-        // Auto-populate the exercises if the plan has them
-        if (planData.exercises && planData.exercises.length > 0) {
-          const mapped = planData.exercises.map((item, index) => {
-            const matchedEx = exData.find(e => e.id === item.exerciseId) || null;
-            return {
-              id: index + 1,
-              exercise: matchedEx,
-              search: matchedEx ? matchedEx.name : "",
-              results: [],
-              sets: item.targetSets ? item.targetSets.toString() : "",
-              reps: item.targetReps ? item.targetReps.toString() : "",
-              weight: item.targetWeight ? item.targetWeight.toString() : "",
-              time: item.targetDurationSec ? (item.targetDurationSec / 60).toString() : ""
-            };
-          });
-          setEntries(mapped);
-          setNextId(planData.exercises.length + 1);
+      .then(([exData, planData]) => {
+        setAllExercises(exData);
+        if (planData) {
+          setWorkoutTitle(planData.name);
+          if (planData.exercises && planData.exercises.length > 0) {
+            const mapped = planData.exercises.map((item, index) => {
+              const matchedEx = exData.find(e => e.id === item.exerciseId) || null;
+              return {
+                id: index + 1,
+                exercise: matchedEx,
+                search: matchedEx ? matchedEx.name : "",
+                results: [],
+                sets: item.targetSets ? item.targetSets.toString() : "",
+                reps: item.targetReps ? item.targetReps.toString() : "",
+                weight: item.targetWeight ? item.targetWeight.toString() : "",
+                time: item.targetDurationSec ? (item.targetDurationSec / 60).toString() : ""
+              };
+            });
+            setEntries(mapped);
+            setNextId(planData.exercises.length + 1);
+          }
         }
-      }
-    })
-    .catch(() => setError("Failed to load workout data."));
+      })
+      .catch(() => setError("Failed to load workout data."));
   }, [planId]);
 
   function handleSearch(id: number, query: string) {
@@ -112,30 +102,32 @@ export default function Workouts() {
   }
 
   async function handleSave() {
+    const missingSelection = entries.some(e => e.search.trim() !== "" && !e.exercise);
+    if (missingSelection) {
+      setError("Please click and select the exercise from the dropdown menu!");
+      return;
+    }
     setSaving(true);
     try {
-      // 1. Create the main workout session (and save the timer!)
-      const session = await fitnessApi.createWorkout({ 
-        planId: planId || null, 
+      const session = await fitnessApi.createWorkout({
+        planId: planId || null,
         notes: `${workoutName || "Workout"} | ${formatTime(seconds)}`
       });
-      
-      // 2. Loop through every tracked exercise and save it to the database!
+
       await Promise.all(
         entries.map((ex, index) => {
-          if (!ex.exercise) return Promise.resolve(); // Skip empty rows
+          if (!ex.exercise) return Promise.resolve();
           return fitnessApi.addSetEntry(session.id, {
             exerciseId: ex.exercise.id,
-            setIndex: index + 1, // Saves the order of the workout
+            setIndex: index + 1,
             reps: ex.reps ? parseInt(ex.reps) : undefined,
             weight: ex.weight ? parseFloat(ex.weight) : undefined,
             durationSec: ex.time ? parseInt(ex.time) * 60 : undefined,
           });
         })
       );
-      
-      await fitnessApi.finishWorkout(session.id);
 
+      await fitnessApi.finishWorkout(session.id);
       navigate("/dashboard");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to save workout");
@@ -143,29 +135,26 @@ export default function Workouts() {
       setSaving(false);
     }
   }
+
   return (
     <section className="space-y-6">
       <div className="flex items-center justify-between border-b border-zinc-200 pb-4">
         <div>
           <h1 className="text-2xl font-bold text-zinc-900">{workoutTitle}</h1>
-          {/* THE LIVE CLOCK */}
           <div className="mt-1 flex items-center gap-2 text-zinc-500 font-mono text-lg">
             <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
             {formatTime(seconds)}
           </div>
         </div>
-
         <div className="space-y-1 max-w-md">
-          <label className="text-sm text-zinc-500">Workout Name (optional)</label>
+          <label className="text-sm text-zinc-500">Workout Name</label>
           <input
             type="text"
             value={workoutName}
             onChange={(e) => setWorkoutName(e.target.value)}
-            placeholder="e.g. Push Day"
             className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500"
           />
         </div>
-        
         <button onClick={() => navigate(-1)} className="rounded-md border border-zinc-300 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100">
           Cancel
         </button>
@@ -178,14 +167,12 @@ export default function Workouts() {
               <p className="text-sm font-semibold text-zinc-900">Exercise</p>
               <button onClick={() => handleRemove(entry.id)} className="text-xs text-red-500 hover:text-red-700">Remove</button>
             </div>
-
             <div className="space-y-1 relative">
-              <label className="text-xs text-zinc-500">Exercise Name</label>
               <input
                 type="text"
                 value={entry.search}
                 onChange={(e) => handleSearch(entry.id, e.target.value)}
-                placeholder="Search exercises..."
+                placeholder="Search..."
                 className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500"
               />
               {entry.results.length > 0 && (
@@ -198,36 +185,19 @@ export default function Workouts() {
                 </div>
               )}
             </div>
-
             <div className="grid grid-cols-4 gap-2">
-              <div className="space-y-1">
-                <label className="text-xs text-zinc-500">Sets</label>
-                <input type="number" value={entry.sets} onChange={(e) => handleChange(entry.id, "sets", e.target.value)} placeholder="3" className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs text-zinc-500">Reps</label>
-                <input type="number" value={entry.reps} onChange={(e) => handleChange(entry.id, "reps", e.target.value)} placeholder="10" className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs text-zinc-500">Weight (kg)</label>
-                <input type="number" value={entry.weight} onChange={(e) => handleChange(entry.id, "weight", e.target.value)} placeholder="60" className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs text-zinc-500">Time (min)</label>
-                <input type="number" value={entry.time} onChange={(e) => handleChange(entry.id, "time", e.target.value)} placeholder="5" className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500" />
-              </div>
+              <input type="number" value={entry.sets} onChange={(e) => handleChange(entry.id, "sets", e.target.value)} placeholder="Sets" className="rounded-md border border-zinc-300 px-2 py-1 text-sm" />
+              <input type="number" value={entry.reps} onChange={(e) => handleChange(entry.id, "reps", e.target.value)} placeholder="Reps" className="rounded-md border border-zinc-300 px-2 py-1 text-sm" />
+              <input type="number" value={entry.weight} onChange={(e) => handleChange(entry.id, "weight", e.target.value)} placeholder="kg" className="rounded-md border border-zinc-300 px-2 py-1 text-sm" />
+              <input type="number" value={entry.time} onChange={(e) => handleChange(entry.id, "time", e.target.value)} placeholder="min" className="rounded-md border border-zinc-300 px-2 py-1 text-sm" />
             </div>
           </div>
         ))}
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
-
       <div className="flex gap-3 pt-2">
-        <button onClick={handleAdd} className="rounded-md border border-zinc-300 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100">+ Add Exercise</button>
-        <button onClick={handleSave} disabled={saving} className="rounded-md bg-zinc-900 px-6 py-2 text-sm font-bold text-white hover:bg-zinc-700 disabled:opacity-50 shadow-sm">
-          {saving ? "Saving..." : "Finish Workout"}
-        </button>
+        <button onClick={handleAdd} className="rounded-md border border-zinc-300 px-4 py-2 text-sm">+ Add</button>
+        <button onClick={handleSave} disabled={saving} className="rounded-md bg-zinc-900 px-6 py-2 text-sm text-white">{saving ? "Saving..." : "Finish"}</button>
       </div>
     </section>
   );

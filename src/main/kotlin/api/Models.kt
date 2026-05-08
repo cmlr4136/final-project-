@@ -1,6 +1,7 @@
 /*
  * 这个文件做什么：定义对外 API 的请求/响应数据结构（DTO）。
  * What this file is for: define request/response DTOs for the public API.
+ * Defines request formats and Response formats
  */
 
 package com.example.api
@@ -61,7 +62,6 @@ data class TrainingPlanDto(
     val goal: String?,
     val createdAt: String,
     val exercises: List<PlanItemDto> = listOf() 
-    val exercises: List<PlanItemDto> = emptyList()
 )
 
 @Serializable

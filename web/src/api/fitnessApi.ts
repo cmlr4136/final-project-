@@ -18,7 +18,7 @@ export const fitnessApi = {
 
   listExercises: () => apiClient.get<ExerciseDto[]>("/api/exercises"),
   listPlans: () => apiClient.get<TrainingPlanDto[]>("/api/plans"),
-  listWorkouts: () => apiClient.get<WorkoutSessionDto[]>("/api/workout-sessions"),
+  listWorkouts: () => apiClient.get<WorkoutSessionDto[]>(`/api/workout-sessions?t=${Date.now()}`),
 
   listGroups: () => apiClient.get<TrainingGroupDto[]>("/api/groups"),
   getMyGroups: () => apiClient.get<TrainingGroupDto[]>("/api/groups/my"),
@@ -44,4 +44,5 @@ export const fitnessApi = {
   createWorkout: (body: { planId?: string | null; notes?: string | null }) => apiClient.post<WorkoutSessionDto>("/api/workout-sessions", body),
   addSetEntry: (sessionId: string, body: { exerciseId: string; setIndex: number; reps?: number; weight?: number; durationSec?: number }) => apiClient.post<void>(`/api/workout-sessions/${sessionId}/sets`, body),
   finishWorkout: (id: string) => apiClient.patch<void>(`/api/workout-sessions/${id}/finish`, {}),
+  getSessionSets: (sessionId: string) => apiClient.get<any[]>(`/api/workout-sessions/${sessionId}/sets?t=${Date.now()}`),
 };

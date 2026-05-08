@@ -1,6 +1,8 @@
-/*
- * 这个文件做什么：训练记录 API（会话 + 组次）。
- * What this file is for: workout logging API (sessions + sets).
+/**
+ * This file handles the live recording of training data. It manages 
+ * workout "sessions" (start/end times) and the individual "set entries" 
+ * (reps, weight, and duration) performed during those sessions. 
+ * Includes ownership validation to ensure users only modify their own data.
  */
 
 package com.example.routes
@@ -165,6 +167,32 @@ fun Route.workoutRoutes() {
         }
     }
 
+    patch("/{id}/finish") {
+            val user = call.requireUser()
+            val sessionId = call.parameters["id"]?.toUuidOrThrow("sessionId") ?: throw IllegalArgumentException("Missing id")
+
+            val updated = dbQuery {
+                // 1. Verify the workout belongs to the user
+                val own = WorkoutSessions.selectAll()
+                    .where { (WorkoutSessions.id eq sessionId) and (WorkoutSessions.userId eq user.id) }
+                    .limit(1)
+                    .any()
+                
+                if (!own) return@dbQuery 0
+
+                // 2. Update the endedAt timestamp to right now
+                WorkoutSessions.update({ WorkoutSessions.id eq sessionId }) {
+                    it[endedAt] = UtcClock.now()
+                }
+            }
+
+            if (updated == 0) {
+                call.respond(HttpStatusCode.NotFound)
+                return@patch
+            }
+            call.respond(HttpStatusCode.OK)
+        }
+
     route("/sets") {
         put("/{id}") {
             val user = call.requireUser()
@@ -216,8 +244,45 @@ fun Route.workoutRoutes() {
             }
             call.respond(HttpStatusCode.OK)
         }
+
+        get("/{id}/sets") {
+            val user = call.requireUser()
+            val sessionId = call.parameters["id"]?.toUuidOrThrow("sessionId") 
+                ?: throw IllegalArgumentException("Missing id")
+
+            val sets = dbQuery {
+                // 1. Verify ownership
+                val own = WorkoutSessions.selectAll()
+                    .where { (WorkoutSessions.id eq sessionId) and (WorkoutSessions.userId eq user.id) }
+                    .limit(1)
+                    .any()
+                if (!own) return@dbQuery null
+
+                // 2. Fetch all sets for this session
+                SetEntries.selectAll().where { SetEntries.sessionId eq sessionId }
+                    .orderBy(SetEntries.setIndex to SortOrder.ASC)
+                    .map {
+                        SetEntryDto(
+                            id = it[SetEntries.id].toString(),
+                            sessionId = it[SetEntries.sessionId].toString(),
+                            exerciseId = it[SetEntries.exerciseId].toString(),
+                            setIndex = it[SetEntries.setIndex],
+                            reps = it[SetEntries.reps],
+                            weight = it[SetEntries.weight],
+                            durationSec = it[SetEntries.durationSec]
+                        )
+                    }
+            }
+
+            if (sets == null) {
+                call.respond(HttpStatusCode.NotFound)
+                return@get
+            }
+            call.respond(sets)
+        }
     }
 }
+
 
 private fun parseInstantOrThrow(value: String): Instant {
     return try {

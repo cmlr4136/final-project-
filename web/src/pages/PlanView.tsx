@@ -19,7 +19,7 @@ export default function PlanView() {
       ])
       .then(([planData, exData]) => {
         setPlan(planData);
-        setExerciseDb(exData); // We use this to translate the ID into the real Name!
+        setExerciseDb(exData); 
       })
       .catch(() => setError("Failed to load plan details."));
     }
@@ -53,7 +53,6 @@ export default function PlanView() {
           <p className="text-sm text-zinc-500">No exercises added to this plan yet.</p>
         ) : (
           plan.exercises.map((item) => {
-            // Find the real name of the exercise from the database!
             const exName = exerciseDb.find(e => e.id === item.exerciseId)?.name || "Unknown Exercise";
             
             return (

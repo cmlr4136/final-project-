@@ -1,6 +1,8 @@
-/*
- * 这个文件做什么：动作库 API（查询 + 管理员创建）。
- * What this file is for: exercise library API (query + admin create).
+/**
+ * This file manages the API endpoints for the master exercise list.
+ * It allows users to search and filter exercises by muscle group or equipment,
+ * and provides restricted access for administrators to add new exercises 
+ * to the global library.
  */
 
 package com.example.routes
