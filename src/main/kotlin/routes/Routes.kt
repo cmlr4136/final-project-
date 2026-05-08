@@ -1,8 +1,8 @@
-/*
- * 这个文件做什么：注册所有 HTTP 路由（/api/...）。
- * What this file is for: register all HTTP routes (/api/...).
- * 给所有路径添加前缀 "/api"
- * 检查请求的内容是否包含 JSON 格式的数据
+/**
+ * This file acts as the central hub for the application's URL structure. 
+ * It installs the authentication middleware, defines the global "/api" 
+ * prefix for all endpoints, and registers the individual routing modules 
+ * for users, exercises, plans, workouts, and groups.
  */
 
 package com.example.routes

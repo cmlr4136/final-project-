@@ -19,26 +19,11 @@ export default function PlanView() {
       ])
       .then(([planData, exData]) => {
         setPlan(planData);
-        setExerciseDb(exData); // We use this to translate the ID into the real Name!
+        setExerciseDb(exData); 
       })
       .catch(() => setError("Failed to load plan details."));
     }
   }, [id]);
-
-  const startPlanWorkout = () => {
-  // 1. Get exercises from the current plan
-  const exercisesToStart = plan.exercises.map(ex => ({
-    exerciseId: ex.id,
-    name: ex.name,
-    sets: ex.targetSets,
-    reps: ex.targetReps,
-    weight: ex.targetWeight
-  }));
-
-  // 2. Set them in your workout store and navigate
-  setExercises(exercisesToStart); 
-  navigate("/workouts/active");
-};
 
   if (error) return <p className="text-sm text-red-500 p-4">{error}</p>;
   if (!plan) return <p className="p-4 text-zinc-500">Loading plan...</p>;
@@ -68,7 +53,6 @@ export default function PlanView() {
           <p className="text-sm text-zinc-500">No exercises added to this plan yet.</p>
         ) : (
           plan.exercises.map((item) => {
-            // Find the real name of the exercise from the database!
             const exName = exerciseDb.find(e => e.id === item.exerciseId)?.name || "Unknown Exercise";
             
             return (

@@ -1,6 +1,5 @@
 /*
- * 这个文件做什么：路由层常用的小工具（参数解析等）。
- * What this file is for: small routing utilities (parameter parsing, etc.).
+ This file is for small routing utilities (parameter parsing, etc.).
  */
 
 package com.example.routes

@@ -1,6 +1,5 @@
 /*
- * 这个文件做什么：简化版密码哈希（用于演示，不追求生产级）。
- * What this file is for: demo-grade password hashing (not production-grade).
+ * This file is for demo-grade password hashing (not production-grade).
  */
 
 package com.example.security

@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { fitnessApi } from "@/api/fitnessApi";
 import type { ExerciseDto } from "@/api/types";
 
-// 1. We changed 'name' to 'exerciseId' to match the backend!
 type ExerciseEntry = {
   id: number;
   exerciseId: string; 
@@ -32,7 +31,6 @@ function ExerciseTemplate({ entry, onChange, onRemove, availableExercises }: Exe
       </div>
       <div className="space-y-1">
         <label className="text-xs text-zinc-500">Select Exercise</label>
-        {/* 2. Changed from a text input to a dropdown mapping to your real exercises! */}
         <select 
           value={entry.exerciseId} 
           onChange={(e) => onChange(entry.id, "exerciseId", e.target.value)} 
@@ -85,7 +83,7 @@ export default function PlanForm() {
       .catch(() => setError("Failed to load exercises database."));
   }, []);
  
-  // 3. Fetch all available exercises from the database when the page loads
+  //Fetch all available exercises from the database when the page loads
   useEffect(() => {
     if (isEditing && id) {
       fitnessApi.getPlan(id)
@@ -93,7 +91,6 @@ export default function PlanForm() {
           setPlanName(plan.name);
           setPlanGoal(plan.goal || "");
           
-          // Translate the backend's PlanItemDto back into the form's ExerciseEntry format
           if (plan.exercises && plan.exercises.length > 0) {
             const mappedExercises = plan.exercises.map((ex, index) => ({
               id: index + 1,
@@ -115,7 +112,6 @@ export default function PlanForm() {
     }
   }, [id, isEditing, navigate]);
 
-  // ... (Keep your existing useEffect for fetching a plan if isEditing is true)
 
   function handleChange(id: number, field: keyof ExerciseEntry, value: string) {
     setExercises((prev) => prev.map((e) => (e.id === id ? { ...e, [field]: value } : e)));
@@ -155,10 +151,8 @@ async function handleDelete() {
         await fitnessApi.updatePlan(currentPlanId!, { name: planName, goal: planGoal || null });
       }
 
-// 5. Fire off all the API calls to save the individual exercise items to that plan!
       if (currentPlanId) {
         
-        // --- NEW: If editing, wipe the old exercises first to prevent duplicates! ---
         if (isEditing) {
           const oldPlan = await fitnessApi.getPlan(currentPlanId);
           if (oldPlan.exercises && oldPlan.exercises.length > 0) {
@@ -166,7 +160,6 @@ async function handleDelete() {
           }
         }
 
-        // --- Now insert the new ones from the form ---
         await Promise.all(
           exercises.map((ex) => {
             if (!ex.exerciseId) return Promise.resolve();

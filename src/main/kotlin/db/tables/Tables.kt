@@ -1,6 +1,5 @@
 /*
- * 这个文件做什么：定义系统的数据库表结构（Exposed Table）。
- * What this file is for: define database tables (Exposed Table).
+ * This file defines the physical structure of the tables where data will be stored 
  */
 
 package com.example.db.tables

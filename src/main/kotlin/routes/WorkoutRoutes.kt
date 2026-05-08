@@ -1,6 +1,8 @@
-/*
- * 这个文件做什么：训练记录 API（会话 + 组次）。
- * What this file is for: workout logging API (sessions + sets).
+/**
+ * This file handles the live recording of training data. It manages 
+ * workout "sessions" (start/end times) and the individual "set entries" 
+ * (reps, weight, and duration) performed during those sessions. 
+ * Includes ownership validation to ensure users only modify their own data.
  */
 
 package com.example.routes
@@ -36,6 +38,26 @@ import java.util.UUID
 
 fun Route.workoutRoutes() {
     route("/workout-sessions") {
+        patch("/{id}/finish") {
+            val user = call.requireUser()
+            val sessionId = call.parameters["id"]?.toUuidOrThrow("sessionId") 
+                ?: throw IllegalArgumentException("Missing id")
+
+            val now = UtcClock.now()
+            val updated = dbQuery {
+                WorkoutSessions.update({ 
+                    (WorkoutSessions.id eq sessionId) and (WorkoutSessions.userId eq user.id) 
+                }) {
+                    it[endedAt] = now
+                }
+            }
+
+            if (updated == 0) {
+                call.respond(HttpStatusCode.NotFound)
+                return@patch
+            }
+            call.respond(HttpStatusCode.OK)
+        }
         post {
             val user = call.requireUser()
             val req = call.receive<CreateWorkoutSessionRequest>()
@@ -145,6 +167,32 @@ fun Route.workoutRoutes() {
         }
     }
 
+    patch("/{id}/finish") {
+            val user = call.requireUser()
+            val sessionId = call.parameters["id"]?.toUuidOrThrow("sessionId") ?: throw IllegalArgumentException("Missing id")
+
+            val updated = dbQuery {
+                // 1. Verify the workout belongs to the user
+                val own = WorkoutSessions.selectAll()
+                    .where { (WorkoutSessions.id eq sessionId) and (WorkoutSessions.userId eq user.id) }
+                    .limit(1)
+                    .any()
+                
+                if (!own) return@dbQuery 0
+
+                // 2. Update the endedAt timestamp to right now
+                WorkoutSessions.update({ WorkoutSessions.id eq sessionId }) {
+                    it[endedAt] = UtcClock.now()
+                }
+            }
+
+            if (updated == 0) {
+                call.respond(HttpStatusCode.NotFound)
+                return@patch
+            }
+            call.respond(HttpStatusCode.OK)
+        }
+
     route("/sets") {
         put("/{id}") {
             val user = call.requireUser()
@@ -198,6 +246,7 @@ fun Route.workoutRoutes() {
         }
     }
 }
+
 
 private fun parseInstantOrThrow(value: String): Instant {
     return try {

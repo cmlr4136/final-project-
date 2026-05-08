@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-// 1. Import useParams to read the URL
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, MoreVertical } from 'lucide-react';
 import { fitnessApi } from '@/api/fitnessApi'; 
@@ -7,7 +6,6 @@ import { useAuthStore } from '@/stores/authStore';
 import type { GroupMessageDto, TrainingGroupDto } from '@/api/types';
 
 export default function GroupChat() {
-  // Extract the groupId from the URL (e.g., /groups/5 -> groupId = '5')
   const { groupId } = useParams<{ groupId: string }>(); 
   const currentUser = useAuthStore((state) => state.user);
   const navigate = useNavigate();
@@ -44,12 +42,10 @@ export default function GroupChat() {
   // Auto-scroll to bottom ref
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 2. Fetch the specific group's info and message history
   useEffect(() => {
     const fetchChatData = async () => {
       if (!groupId) return;
       try {
-        // Replace with your actual API calls
         const info = await fitnessApi.getGroupDetails(groupId);
         const history = await fitnessApi.getGroupMessages(groupId);
         
@@ -105,10 +101,8 @@ export default function GroupChat() {
     if (!newMessage.trim() || !groupId) return;
 
     const messageText = newMessage.trim();
-    setNewMessage(''); // Clear input instantly for snappy UI
-
+    setNewMessage(''); 
     try {
-      // Send to your Kotlin backend
       const savedMessage = await fitnessApi.sendMessage(groupId, messageText);
       
       // Update the UI with the confirmed message from the server
@@ -116,7 +110,6 @@ export default function GroupChat() {
     } catch (error) {
       console.error("Failed to send message", error);
       alert("Failed to send message. Please try again.");
-      // Optional: Restore the failed text to the input box so the user doesn't lose it
       setNewMessage(messageText); 
     }
   };
@@ -190,13 +183,11 @@ export default function GroupChat() {
               </div>
               
               <span className={`text-[11px] text-gray-400 mt-1 ${isMine ? 'mr-1' : 'ml-1'}`}>
-                {/* Format the backend timestamp into a readable time */}
                 {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
           );
         })}
-        {/* Invisible div to help us auto-scroll to the bottom */}
         <div ref={messagesEndRef} />
       </main>
 

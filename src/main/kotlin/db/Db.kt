@@ -1,6 +1,8 @@
-/*
- * 这个文件做什么：提供一个统一的数据库事务入口（协程安全）。
- * What this file is for: provide a single DB transaction helper (coroutine-friendly).
+/**
+ * Database Transaction Helper
+ * This file provides a coroutine-safe wrapper for all database operations.
+ * It ensures that database queries run on a background IO thread and 
+ * manages SQL transactions to maintain data integrity and server performance.
  */
 
 package com.example.db

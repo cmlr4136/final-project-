@@ -1,20 +1,21 @@
 import { useState, useEffect } from "react";
 import { useAuthStore } from "@/stores/authStore";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { fitnessApi } from "@/api/fitnessApi";
+import { apiClient } from "@/api/client"; // <--- We added this!
 import type { WorkoutSessionDto } from "@/api/types";
 
 export default function Dashboard() {
   const user = useAuthStore((s) => s.user);
   const token = useAuthStore((s) => s.token);
   const navigate = useNavigate();
+  const location = useLocation();
   const unit = useSettingsStore((s) => s.unit);
 
   const [workouts, setWorkouts] = useState<WorkoutSessionDto[]>([]);
   const [stats, setStats] = useState({ totalWeight: 0, workoutCount: 0, timeElapsed: 0 });
 
-  // Helper to handle unit conversion for display
   const displayWeight = (kg: number): string => {
     return unit === "lbs" ? `${(kg * 2.20462).toFixed(1)} lbs` : `${kg} kg`;
   };
@@ -23,41 +24,30 @@ export default function Dashboard() {
     if (!token) return;
 
     async function loadDashboardData() {
+      // 1. Fetch Workouts Safely
       try {
-        // Load stats and full workout history in parallel
-        const [statsRes, workoutsList] = await Promise.all([
-          fitnessApi.get("/api/stats/summary"),
-          fitnessApi.listWorkouts()
-        ]);
-
-        setStats(statsRes.data);
+        // By using apiClient directly with a timestamp, we bypass browser caching bugs
+        const workoutsList = await apiClient.get<WorkoutSessionDto[]>(`/api/workout-sessions?t=${Date.now()}`);
         setWorkouts(workoutsList);
       } catch (err) {
-        console.error("Dashboard sync failed:", err);
+        console.error("Failed to load workouts:", err);
+      }
+
+      // 2. Fetch Stats Separately
+      try {
+        const statsRes = await apiClient.get<any>(`/api/stats/summary?t=${Date.now()}`);
+        // Handle the data whether the network client wraps it or not
+        const statsData = statsRes.data !== undefined ? statsRes.data : statsRes;
+        if (statsData) {
+          setStats(statsData);
+        }
+      } catch (err) {
+        console.error("Failed to load stats:", err);
       }
     }
 
     loadDashboardData();
-  }, [token]);
-
-  const handleStartEmptyWorkout = async () => {
-  try {
-    const res = await fitnessApi.post("/api/workout-sessions", {
-      notes: "Quick Workout",
-      planId: null
-    });
-    
-    const newSessionId = res.data.id;
-    navigate(`/workouts/${newSessionId}`);
-  } catch (err) {
-    console.error("Could not start workout:", err);
-  }
-};
-
-// Then in your JSX:
-<button onClick={handleStartEmptyWorkout} className="...">
-  Start Empty Workout
-</button>
+  }, [token, location.key]);
 
   return (
     <section className="space-y-6">
@@ -70,7 +60,7 @@ export default function Dashboard() {
       {/* Action Buttons */}
       <div className="flex gap-3">
         <button 
-          onClick={() => navigate("/workouts/active")} 
+          onClick={() => navigate("/workouts")} 
           className="rounded-md bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-700 transition-colors"
         >
           Start Empty Workout

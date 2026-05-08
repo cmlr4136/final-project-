@@ -18,7 +18,7 @@ function newEntry(id: number): WorkoutEntry {
   return { id, exercise: null, sets: "", reps: "", weight: "", time: "", search: "", results: [] };
 }
 
-// Helper to format seconds into MM:SS
+//Format seconds into MM:SS
 function formatTime(totalSeconds: number) {
   const m = Math.floor(totalSeconds / 60).toString().padStart(2, "0");
   const s = (totalSeconds % 60).toString().padStart(2, "0");
@@ -41,18 +41,17 @@ export default function Workouts() {
 
 
   
-  // --- LIVE TIMER STATE ---
   const [seconds, setSeconds] = useState(0);
 
-  // 1. Start the Timer
+  //Start the Timer
   useEffect(() => {
     const interval = setInterval(() => {
       setSeconds((s) => s + 1);
     }, 1000);
-    return () => clearInterval(interval); // Cleanup when page closes
+    return () => clearInterval(interval);
   }, []);
 
-  // 2. Fetch Exercises and (Optionally) the Plan
+  // 2. Fetch Exercises and Plan
   useEffect(() => {
     Promise.all([
       fitnessApi.listExercises(),
@@ -62,7 +61,7 @@ export default function Workouts() {
       setAllExercises(exData);
 
       if (planData) {
-        setWorkoutTitle(planData.name); // Change the title!
+        setWorkoutTitle(planData.name); 
         
         // Auto-populate the exercises if the plan has them
         if (planData.exercises && planData.exercises.length > 0) {
@@ -114,7 +113,7 @@ export default function Workouts() {
   async function handleSave() {
     setSaving(true);
     try {
-      // 1. Create the main workout session (and save the timer!)
+      //Create the main workout session
       const session = await fitnessApi.createWorkout({ 
         planId: planId || null, 
         notes: `${workoutName || "Workout"} | ${formatTime(seconds)}`
@@ -148,7 +147,6 @@ export default function Workouts() {
       <div className="flex items-center justify-between border-b border-zinc-200 pb-4">
         <div>
           <h1 className="text-2xl font-bold text-zinc-900">{workoutTitle}</h1>
-          {/* THE LIVE CLOCK */}
           <div className="mt-1 flex items-center gap-2 text-zinc-500 font-mono text-lg">
             <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
             {formatTime(seconds)}

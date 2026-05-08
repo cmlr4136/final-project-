@@ -1,7 +1,8 @@
-/*
- * 这个文件做什么：初始化数据库连接与建表（H2 + Exposed）。
- * What this file is for: initialize DB connection and create tables (H2 + Exposed).
- * 在后端启动时连接数据库、自动建表，并补齐系统运行所需的初始数据
+/**
+ * * This file initializes the H2 database connection and uses the Exposed ORM 
+ * to synchronize the physical database schema with the defined Kotlin tables.
+ * It also handles populating the database with default 
+ * exercises and an admin account if they don't already exist.
  */
 
 package com.example.db

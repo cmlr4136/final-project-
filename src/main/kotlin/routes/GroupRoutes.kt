@@ -1,6 +1,8 @@
-/*
- * 这个文件做什么：训练群组（简化版）API。
- * What this file is for: training groups (minimal) API.
+/**
+ * This file manages the social features of the application, including 
+ * group discovery, membership management (joining/leaving), and 
+ * group-based messaging. It enforces access control so only members 
+ * can view or post messages within private or joined groups.
  */
 
 package com.example.routes

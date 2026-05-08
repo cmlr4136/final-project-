@@ -41,7 +41,6 @@ export default function Exercises() {
     <section className="space-y-4">
       <h1 className="text-xl font-semibold text-zinc-900">Exercises</h1>
 
-      {/* Search */}
       <input
         type="text"
         placeholder="Search exercises..."
@@ -50,7 +49,6 @@ export default function Exercises() {
         className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500"
       />
 
-      {/* Filters */}
       <div className="flex flex-wrap gap-2">
         {FILTERS.map((filter) => (
           <button
@@ -67,7 +65,6 @@ export default function Exercises() {
         ))}
       </div>
 
-      {/* Results */}
       {loading && <p className="text-sm text-zinc-500">Loading...</p>}
       {error && <p className="text-sm text-red-600">{error}</p>}
 
