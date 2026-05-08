@@ -58,8 +58,9 @@ data class CreateExerciseRequest(
 data class TrainingPlanDto(
     val id: String,
     val name: String,
-    val goal: String? = null,
+    val goal: String?,
     val createdAt: String,
+    val exercises: List<PlanItemDto> = listOf() 
     val exercises: List<PlanItemDto> = emptyList()
 )
 

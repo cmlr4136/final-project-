@@ -36,6 +36,26 @@ import java.util.UUID
 
 fun Route.workoutRoutes() {
     route("/workout-sessions") {
+        patch("/{id}/finish") {
+            val user = call.requireUser()
+            val sessionId = call.parameters["id"]?.toUuidOrThrow("sessionId") 
+                ?: throw IllegalArgumentException("Missing id")
+
+            val now = UtcClock.now()
+            val updated = dbQuery {
+                WorkoutSessions.update({ 
+                    (WorkoutSessions.id eq sessionId) and (WorkoutSessions.userId eq user.id) 
+                }) {
+                    it[endedAt] = now
+                }
+            }
+
+            if (updated == 0) {
+                call.respond(HttpStatusCode.NotFound)
+                return@patch
+            }
+            call.respond(HttpStatusCode.OK)
+        }
         post {
             val user = call.requireUser()
             val req = call.receive<CreateWorkoutSessionRequest>()

@@ -37,6 +37,9 @@ export default function Workouts() {
   
   const [allExercises, setAllExercises] = useState<ExerciseDto[]>([]);
   const [workoutTitle, setWorkoutTitle] = useState("New Workout");
+  const [workoutName, setWorkoutName] = useState("");
+
+
   
   // --- LIVE TIMER STATE ---
   const [seconds, setSeconds] = useState(0);
@@ -114,7 +117,7 @@ export default function Workouts() {
       // 1. Create the main workout session (and save the timer!)
       const session = await fitnessApi.createWorkout({ 
         planId: planId || null, 
-        notes: `Workout Duration: ${formatTime(seconds)}` 
+        notes: `${workoutName || "Workout"} | ${formatTime(seconds)}`
       });
       
       // 2. Loop through every tracked exercise and save it to the database!
@@ -131,6 +134,8 @@ export default function Workouts() {
         })
       );
       
+      await fitnessApi.finishWorkout(session.id);
+
       navigate("/dashboard");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to save workout");
@@ -138,7 +143,6 @@ export default function Workouts() {
       setSaving(false);
     }
   }
-
   return (
     <section className="space-y-6">
       <div className="flex items-center justify-between border-b border-zinc-200 pb-4">
@@ -149,6 +153,17 @@ export default function Workouts() {
             <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
             {formatTime(seconds)}
           </div>
+        </div>
+
+        <div className="space-y-1 max-w-md">
+          <label className="text-sm text-zinc-500">Workout Name (optional)</label>
+          <input
+            type="text"
+            value={workoutName}
+            onChange={(e) => setWorkoutName(e.target.value)}
+            placeholder="e.g. Push Day"
+            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500"
+          />
         </div>
         
         <button onClick={() => navigate(-1)} className="rounded-md border border-zinc-300 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100">

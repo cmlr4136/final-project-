@@ -1,9 +1,5 @@
-/*
- * 这个文件做什么：用 zustand 存储登录态（token + user）。
- * What this file is for: store auth state via zustand (token + user).
- */
-
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import type { UserDto } from "@/api/types";
 
 type AuthState = {
@@ -13,10 +9,16 @@ type AuthState = {
   clear: () => void;
 };
 
-export const useAuthStore = create<AuthState>((set) => ({
-  token: null,
-  user: null,
-  setAuth: (token, user) => set({ token, user }),
-  clear: () => set({ token: null, user: null }),
-}));
-
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      token: null,
+      user: null,
+      setAuth: (token, user) => set({ token, user }),
+      clear: () => set({ token: null, user: null }),
+    }),
+    {
+      name: "auth-storage",
+    }
+  )
+);
