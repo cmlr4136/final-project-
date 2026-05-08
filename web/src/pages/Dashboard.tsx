@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useAuthStore } from "@/stores/authStore";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useSettingsStore } from "@/stores/settingsStore";
-import { apiClient } from "@/api/client"; 
+import { fitnessApi } from "@/api/fitnessApi";
+import { apiClient } from "@/api/client";
 import type { WorkoutSessionDto } from "@/api/types";
 
 export default function Dashboard() {
@@ -24,25 +25,41 @@ export default function Dashboard() {
 
     async function loadDashboardData() {
       try {
-        // 1. Fetch Workouts Safely
+        // 1. Fetch Workouts with cache buster
         const workoutsList = await apiClient.get<WorkoutSessionDto[]>(`/api/workout-sessions?t=${Date.now()}`);
         setWorkouts(workoutsList);
 
-        // 2. Calculate Weekly Stats using the workoutsList we just fetched
+        // 2. Filter for this week
         const now = new Date();
         const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         const weeklyWorkouts = workoutsList.filter((w: any) => new Date(w.startedAt) >= lastWeek);
 
         let totalMin = 0;
-        weeklyWorkouts.forEach((w: any) => {
-            if (w.endedAt) {
-                const diff = new Date(w.endedAt).getTime() - new Date(w.startedAt).getTime();
-                totalMin += Math.max(0, Math.round(diff / 60000));
-            }
-        });
+        let totalVol = 0;
+
+        // 3. Loop through workouts to calculate Time and Volume
+        for (const w of weeklyWorkouts) {
+          if (w.endedAt) {
+            const diff = new Date(w.endedAt).getTime() - new Date(w.startedAt).getTime();
+            totalMin += Math.ceil(diff / 60000); // Use ceil so short tests count
+          }
+
+          try {
+            const sets = await fitnessApi.getSessionSets(w.id);
+            sets.forEach((s: any) => {
+              const wVal = parseFloat(s.weight);
+              const rVal = parseInt(s.reps);
+              if (!isNaN(wVal) && !isNaN(rVal)) {
+                totalVol += (wVal * rVal);
+              }
+            });
+          } catch (e) {
+            console.warn("Could not fetch sets for workout", w.id);
+          }
+        }
 
         setStats({
-          totalWeight: 0, // Note: Calculating exact volume requires fetching every set for every workout, so we leave it 0 for now
+          totalWeight: totalVol,
           workoutCount: weeklyWorkouts.length,
           timeElapsed: totalMin
         });
@@ -50,7 +67,7 @@ export default function Dashboard() {
       } catch (err) {
         console.error("Failed to load dashboard data:", err);
       }
-    } // <--- Added the missing closing bracket here!
+    }
 
     loadDashboardData();
   }, [token, location.key]);
@@ -63,7 +80,6 @@ export default function Dashboard() {
         </h1>
       </header>
 
-      {/* Action Buttons */}
       <div className="flex gap-3">
         <button 
           onClick={() => navigate("/workouts")} 
@@ -71,7 +87,6 @@ export default function Dashboard() {
         >
           Start Empty Workout
         </button>
-        
         <button 
           onClick={() => navigate("/plans")} 
           className="rounded-md border border-zinc-300 px-4 py-2 text-sm text-zinc-900 hover:bg-zinc-100 transition-colors"
@@ -80,14 +95,9 @@ export default function Dashboard() {
         </button>
       </div>
 
-      {/* Weekly Stats Grid */}
       <section>
         <h2 className="text-base font-semibold text-zinc-900 mb-3">This week's stats:</h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm space-y-1">
-            <p className="text-sm text-zinc-500">Total Volume</p>
-            <p className="text-2xl font-bold text-zinc-900">{displayWeight(stats.totalWeight)}</p>
-          </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm space-y-1">
             <p className="text-sm text-zinc-500">Time Elapsed</p>
             <p className="text-2xl font-bold text-zinc-900">{stats.timeElapsed} min</p>
@@ -99,35 +109,24 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* Workout History Feed */}
       <section>
         <h2 className="text-base font-semibold text-zinc-900 mb-3">Recent Activity:</h2>
         <div className="space-y-3">
           {workouts.length === 0 ? (
-            <p className="text-sm text-zinc-500 italic">No workouts recorded yet. Time to hit the gym!</p>
+            <p className="text-sm text-zinc-500 italic">No workouts recorded yet.</p>
           ) : (
             workouts.map((w) => (
               <div
                 key={w.id}
-                onClick={() => navigate(`/workouts/${w.id}`, { state: { workout: w } })}
-                className="group cursor-pointer flex items-center justify-between rounded-xl border border-zinc-200 bg-white px-4 py-4 shadow-sm hover:border-zinc-300 hover:bg-zinc-50 transition-all"
+                className="group flex items-center justify-between rounded-xl border border-zinc-200 bg-white px-4 py-4 shadow-sm transition-all"
               >
                 <div>
                   <p className="text-sm font-medium text-zinc-900 group-hover:text-black">
                     {w.notes || "Unnamed Session"}
                   </p>
                   <p className="text-xs text-zinc-500">
-                    {new Date(w.startedAt).toLocaleDateString(undefined, { 
-                      weekday: 'short', 
-                      month: 'short', 
-                      day: 'numeric' 
-                    })}
+                    {new Date(w.startedAt).toLocaleDateString()}
                   </p>
-                </div>
-                <div className="text-zinc-400 group-hover:text-zinc-900">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
-                    <path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"></path>
-                  </svg>
                 </div>
               </div>
             ))
