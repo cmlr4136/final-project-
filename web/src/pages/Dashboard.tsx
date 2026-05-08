@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuthStore } from "@/stores/authStore";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useSettingsStore } from "@/stores/settingsStore";
-import { fitnessApi } from "@/api/fitnessApi";
-import { apiClient } from "@/api/client"; // <--- We added this!
+import { apiClient } from "@/api/client"; 
 import type { WorkoutSessionDto } from "@/api/types";
 
 export default function Dashboard() {
@@ -24,27 +23,34 @@ export default function Dashboard() {
     if (!token) return;
 
     async function loadDashboardData() {
-      // 1. Fetch Workouts Safely
       try {
-        // By using apiClient directly with a timestamp, we bypass browser caching bugs
+        // 1. Fetch Workouts Safely
         const workoutsList = await apiClient.get<WorkoutSessionDto[]>(`/api/workout-sessions?t=${Date.now()}`);
         setWorkouts(workoutsList);
-      } catch (err) {
-        console.error("Failed to load workouts:", err);
-      }
 
-      // 2. Fetch Stats Separately
-      try {
-        const statsRes = await apiClient.get<any>(`/api/stats/summary?t=${Date.now()}`);
-        // Handle the data whether the network client wraps it or not
-        const statsData = statsRes.data !== undefined ? statsRes.data : statsRes;
-        if (statsData) {
-          setStats(statsData);
-        }
+        // 2. Calculate Weekly Stats using the workoutsList we just fetched
+        const now = new Date();
+        const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const weeklyWorkouts = workoutsList.filter((w: any) => new Date(w.startedAt) >= lastWeek);
+
+        let totalMin = 0;
+        weeklyWorkouts.forEach((w: any) => {
+            if (w.endedAt) {
+                const diff = new Date(w.endedAt).getTime() - new Date(w.startedAt).getTime();
+                totalMin += Math.max(0, Math.round(diff / 60000));
+            }
+        });
+
+        setStats({
+          totalWeight: 0, // Note: Calculating exact volume requires fetching every set for every workout, so we leave it 0 for now
+          workoutCount: weeklyWorkouts.length,
+          timeElapsed: totalMin
+        });
+
       } catch (err) {
-        console.error("Failed to load stats:", err);
+        console.error("Failed to load dashboard data:", err);
       }
-    }
+    } // <--- Added the missing closing bracket here!
 
     loadDashboardData();
   }, [token, location.key]);

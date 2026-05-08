@@ -111,6 +111,11 @@ export default function Workouts() {
   }
 
   async function handleSave() {
+    const missingSelection = entries.some(e => e.search.trim() !== "" && !e.exercise);
+    if (missingSelection) {
+      setError("Please click and select the exercise from the dropdown menu!");
+      return; // Stop saving until they select it
+    }
     setSaving(true);
     try {
       //Create the main workout session

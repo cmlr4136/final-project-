@@ -244,6 +244,42 @@ fun Route.workoutRoutes() {
             }
             call.respond(HttpStatusCode.OK)
         }
+
+        get("/{id}/sets") {
+            val user = call.requireUser()
+            val sessionId = call.parameters["id"]?.toUuidOrThrow("sessionId") 
+                ?: throw IllegalArgumentException("Missing id")
+
+            val sets = dbQuery {
+                // 1. Verify ownership
+                val own = WorkoutSessions.selectAll()
+                    .where { (WorkoutSessions.id eq sessionId) and (WorkoutSessions.userId eq user.id) }
+                    .limit(1)
+                    .any()
+                if (!own) return@dbQuery null
+
+                // 2. Fetch all sets for this session
+                SetEntries.selectAll().where { SetEntries.sessionId eq sessionId }
+                    .orderBy(SetEntries.setIndex to SortOrder.ASC)
+                    .map {
+                        SetEntryDto(
+                            id = it[SetEntries.id].toString(),
+                            sessionId = it[SetEntries.sessionId].toString(),
+                            exerciseId = it[SetEntries.exerciseId].toString(),
+                            setIndex = it[SetEntries.setIndex],
+                            reps = it[SetEntries.reps],
+                            weight = it[SetEntries.weight],
+                            durationSec = it[SetEntries.durationSec]
+                        )
+                    }
+            }
+
+            if (sets == null) {
+                call.respond(HttpStatusCode.NotFound)
+                return@get
+            }
+            call.respond(sets)
+        }
     }
 }
 
